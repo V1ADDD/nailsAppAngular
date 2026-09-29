@@ -14,7 +14,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "ngc -p tsconfig.app.json --noEmit && tsc -p tsconfig.spec.json --noEmit",
-    "check": "npm run typecheck && npm run lint && npm test"
+    "check": "npm run typecheck && npm run lint && npm test",
+    "build:pages": "ng build --base-href /nailsAppAngular/ && node scripts/spa-fallback.mjs"
   },
   "private": true,
   "packageManager": "npm@11.11.0",
