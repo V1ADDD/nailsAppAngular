@@ -27,6 +27,7 @@ Review what changed: `git status --porcelain -uall` and `git diff` (plus untrack
 - `input()`/`output()`/`model()`/`viewChild()` rather than decorators. New control flow (`@if/@for/@switch`).
 - Presentational components don't inject stores or APIs.
 - Components talk to data only through the store; the store talks only to the abstract API token, never to `Mock…Api` directly.
+- User-facing text is in Russian; prices go through the `currency` pipe (BYN) and dates through `date` (ru-BY), never hand-formatted; plurals follow Russian rules.
 - Styles use design tokens (`var(--…)`), with no raw hex or px values except 1px borders. Mobile-first.
 - File and folder layout matches `CLAUDE.md`.
 

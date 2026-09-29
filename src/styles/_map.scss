@@ -1,0 +1,79 @@
+// Global Leaflet overrides: Leaflet renders outside Angular's view encapsulation.
+.leaflet-container {
+  font-family: var(--font-family);
+  background: var(--color-map-land);
+}
+
+.leaflet-control-attribution {
+  font-size: var(--font-size-2xs);
+  background: rgb(255 255 255 / 75%) !important;
+}
+
+.map-pin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1) 0.625rem;
+  white-space: nowrap;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  background: var(--color-surface);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-md);
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  transition: transform var(--transition-fast);
+
+  &--active,
+  &:hover {
+    color: var(--color-primary-contrast);
+    background: var(--color-primary);
+  }
+
+  &--online::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 10px;
+    height: 10px;
+    background: var(--color-success);
+    border: 2px solid var(--color-surface);
+    border-radius: var(--radius-full);
+  }
+}
+
+.map-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--color-primary-contrast);
+  background: var(--color-primary);
+  border: 3px solid var(--color-surface);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-primary);
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+}
+
+.map-user {
+  width: 18px;
+  height: 18px;
+  background: var(--color-info);
+  border: 3px solid var(--color-surface);
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 0 8px rgb(47 128 237 / 18%);
+  transform: translate(-50%, -50%);
+}
+
+// Leaflet's divIcon wrapper must not add its own box.
+.leaflet-div-icon.map-marker {
+  background: none;
+  border: none;
+}

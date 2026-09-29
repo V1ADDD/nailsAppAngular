@@ -15,10 +15,11 @@ If Figma MCP tools are available (names containing `figma`), use them: fetch the
 1. **Tokens first.** Before styling a new screen, check whether it introduces colors, spacing, radii, font sizes or shadows that aren't in `_tokens.scss`. Add them there as semantic names (`--color-surface-raised`, not `--pink-200`). Components use only `var(--…)`; raw hex or px values are allowed only for 1px hairlines.
 2. **Reuse primitives.** Check `src/app/shared/ui/` before building. When a pattern appears twice (button, card, chip, avatar, rating stars, price tag), extract it there as a presentational component with `input()`s and variants.
 3. **Mobile-first.** Base styles target about 375px. Scale up with `@include bp.up(md)` from `styles/breakpoints` (`@use 'styles/breakpoints' as bp;`). Use flex/grid with `gap`, not margins between siblings.
-4. **Semantic, accessible HTML.** Use landmarks, heading order, `<button>` for actions and `<a routerLink>` for navigation, `alt` on images, labels on inputs, visible focus, and at least 4.5:1 contrast for text. Honour `prefers-reduced-motion` for animations.
-5. **Component styles stay scoped** (`styleUrl`). Use `:host` for the component's own box. No `::ng-deep`. Keep each file under the 4kB component-style budget, and move shared patterns into primitives or global partials when they grow.
-6. **States.** Every data-driven view has loading (skeleton), empty and error states, even if Figma shows only the happy path.
-7. **Images.** Use `NgOptimizedImage` (`ngSrc`) with explicit width and height, or `fill`.
+4. **Russian copy.** All visible text, `alt` and `aria-label` values are in Russian. Prices use `currency: 'BYN' : 'symbol-narrow'`, dates use the `date` pipe (locale `ru-BY`). Leave room for long Russian words: no fixed-width buttons, and allow wrapping.
+5. **Semantic, accessible HTML.** Use landmarks, heading order, `<button>` for actions and `<a routerLink>` for navigation, `alt` on images, labels on inputs, visible focus, and at least 4.5:1 contrast for text. Honour `prefers-reduced-motion` for animations.
+6. **Component styles stay scoped** (`styleUrl`). Use `:host` for the component's own box. No `::ng-deep`. Keep each file under the 4kB component-style budget, and move shared patterns into primitives or global partials when they grow.
+7. **States.** Every data-driven view has loading (skeleton), empty and error states, even if Figma shows only the happy path.
+8. **Images.** Use `NgOptimizedImage` (`ngSrc`) with explicit width and height, or `fill`.
 
 ## Done means
 

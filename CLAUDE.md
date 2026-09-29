@@ -2,6 +2,19 @@
 
 A web app where **nail masters sell their services**. For now it is **frontend only**: all data comes from typed mock services, and there is no backend. The UI is implemented from the user's **Figma design**. Features and the domain model get added here as screens are built.
 
+## Region & language
+
+The market is **Belarus**, the site language is **Russian**, and the currency is **BYN**.
+
+- **All user-facing text is in Russian**: labels, buttons, placeholders, empty and error states, `alt` text, `aria-label`s. Code, identifiers and comments stay in English. There is no i18n framework (single language), so write Russian strings directly in templates.
+- **Locale** `ru-BY` is set globally (`LOCALE_ID`, `DEFAULT_CURRENCY_CODE = 'BYN'`, date pipe timezone `+0300`). See [core/locale.ts](src/app/core/locale.ts). Use pipes / `shared/format` helpers and never hand-format:
+  - prices: the `price` pipe from `shared/format/price` → `45 р`, `от 30 р`, `Бесплатно` (the design writes «р», not «Br»). Never hand-format.
+  - dates and times: `{{ d | date: 'd MMMM, HH:mm' }}` gives `2 октября, 14:30`. Times are 24-hour, and weeks start on Monday.
+- Money in models: `Price` (`{ kind: 'exact' | 'from', amount }` or `{ kind: 'free' }`) in BYN, not minor units.
+- **Non-breaking spaces**: use the `NBSP` constant from `shared/format/text.ts`; never type the character itself or its unicode escape sequence in files you write (the tools turn the escape into the literal character, which fails ESLint no-irregular-whitespace).
+- Mock data should be realistic for Belarus: Russian names (Анна, Екатерина…), Minsk and other Belarusian cities and districts, phones in the `+375 (29) 123-45-67` format, and typical local prices (a manicure costs roughly 30–80 BYN).
+- Pluralise with Russian rules (1 отзыв / 2 отзыва / 5 отзывов). Use `Intl.PluralRules('ru')` or a small shared pipe, never `count + ' отзывов'`.
+
 ## Stack
 
 - **Angular 21** (standalone, zoneless, signals). Node 24.14, so Angular 22 needs Node ≥24.15 first.
@@ -26,27 +39,46 @@ npx ng g c features/<f>/ui/<name>   # schematic defaults: OnPush, SCSS, spec
 
 ```
 src/app/
-  core/            app-wide singletons: api/ (mock helpers), layout/ (shell, header, nav)
-  shared/ui/       reusable presentational primitives (button, card, avatar, rating, ...)
-  features/<f>/    one folder per feature: data/ state/ ui/ pages/ <f>.routes.ts
-src/styles/        _tokens.scss (design tokens), _base.scss, _breakpoints.scss
+  core/data/        SHARED DOMAIN: models.ts, catalog.ts (service catalog), rules.ts (ТЗ business
+                    rules: search, distance, prices, booking rules), api.ts (abstract API tokens),
+                    fixtures/ (seed data, relative to "now"), mock/ (MockDb + Mock…Api)
+  core/session/     SessionStore (mock auth, active role client|master, favorites, unread), authGuard
+  core/layout/      top bar (lg+), bottom tab bar (<lg), 404
+  core/support/     «Напишите нам» sheet (SupportService.open())
+  shared/ui/        icon, avatar, rating, tabs, segmented, sheet (dialog/bottom sheet), toast, swipe
+  shared/format/    price, plural, dates pipes + NBSP constant
+  features/         search (map home) · master-profile (+booking) · chats · profile (role switch
+                    shell) · client-account · master-cabinet · auth (mock login)
+src/styles/         _tokens.scss, _base.scss, _controls.scss (.btn .chip .card .tag .input .field
+                    .dot .empty-state .skeleton), _map.scss (Leaflet), _breakpoints.scss
+design/             Figma Make screenshots (mobile only) — the visual reference
 ```
 
-Data flows one way: **page component → feature store → abstract API token → Mock…Api → fixtures**.
+Data flows one way: **page component → feature store → abstract API token (core/data/api.ts) → Mock…Api → MockDb**.
 
-- **API layer**: `abstract class XApi` is the DI token, and `MockXApi extends XApi` returns `mockResponse(data)` or `mockError(msg)` from [core/api/mock-response.ts](src/app/core/api/mock-response.ts) (with simulated latency). It is wired in `app.config.ts` as `{ provide: XApi, useClass: MockXApi }`. A real HTTP implementation will later replace the mock without touching stores or components. **Never import `Mock…Api` or fixtures outside `data/` and specs.**
-- **Stores**: `signalStore` with `withState` / `withComputed` / `withMethods`, async via `rxMethod` + `tapResponse`. Track `loading` + `error` in state. Use `withEntities` for collections. Stores inject only API tokens.
+- **Domain is shared**, not per feature: masters, bookings and chats are used by several features, so models, APIs and the mock backend live in `core/data`. Features own their stores (`state/`), presentational components (`ui/`) and pages (`pages/`).
+- **API layer**: `abstract class XApi` is the DI token; `MockXApi` runs against the in-memory `MockDb` (so a booking made on a master's page appears in chats and both cabinets) and returns `mockResponse()` / `mockError()`. All wired via `MOCK_API_PROVIDERS` in `app.config.ts`. **Never import `MockDb`, `Mock…Api` or fixtures outside `core/data` and specs.** Reload resets the data.
+- **Business rules** (ТЗ) are pure functions in `core/data/rules.ts` — reuse them, don't re-implement in components.
+- **Stores**: `signalStore` with `withState` / `withComputed` / `withMethods`, async via `rxMethod` + `tapResponse`. Track `loading` + `error`. Stores inject only API tokens (and `SessionStore`).
 - **Components**: _pages_ (smart) inject the store and pass data down. `ui/` components are presentational: `input()` / `output()` only, and never inject stores or APIs.
-- **Routes**: every feature is lazy (`loadChildren` → `<f>.routes.ts` default export). Route params arrive as component `input()`s (`withComponentInputBinding` is enabled).
+- **Routes**: every feature is lazy (`<f>.routes.ts` default export). Route params arrive as component `input()`s. `/chats` and `/profile` require login (`authGuard`).
 
 Use the `/new-feature` skill for templates.
+
+## Domain (ТЗ)
+
+- **Roles**: one account, two roles (client / master), switched in /profile by button or swipe. Chats are separate per role. Admin is out of scope for the mock.
+- **Catalog**: category → subcategory (`catalog.ts`). A master's service = subcategory + price + duration. Price kinds: exact, «от», free — never ranges or «по договорённости».
+- **Slots**: master sees free / booked (site) / busy (external, «не с сайта») / pending; client sees free / busy / pending (`slotStatusFor`).
+- **Booking flow**: book a free slot → pending + chat created with a booking card → the *opposite* side confirms in the chat. Unconfirmed → slot released 24 h / 2 h before (`pendingReleaseAt`). Cancel needs a reason. «Перенести» = cancel + new booking (MVP). Overlapping bookings of one client auto-cancel the older one; same-day bookings < 60 min apart show a warning.
+- **Map**: Leaflet + OSM/CARTO tiles, own pixel-grid clustering, pins show price («от 30 р»). Default sort: nearest.
 
 ## Angular conventions (lint-enforced where possible)
 
 - `ChangeDetectionStrategy.OnPush` everywhere; standalone (no NgModules); `inject()`, not constructor DI.
 - Signal APIs: `input()`, `input.required()`, `output()`, `model()`, `viewChild()`, `computed()`, `linkedSignal()`. No `@Input`/`@Output` decorators.
 - Built-in control flow `@if` / `@for (…; track item.id)` / `@switch` / `@defer`. No `*ngIf` / `*ngFor`.
-- No manual `subscribe` in components. Use `rxMethod`, `toSignal`, or `takeUntilDestroyed`.
+- No long-lived manual `subscribe` in components: use `rxMethod`, `toSignal`, or `takeUntilDestroyed`. One-shot commands from a store method are preferred over subscribing in a component.
 - Use `effect()` only for side effects that leave the signal graph (DOM, storage), never to derive state.
 - `type` imports (`import { type Foo }`), no `any`, strict templates. Use the `@app/*` path alias for cross-folder imports.
 - Files: `kebab-case.ts`. Classes are named without a `Component` suffix (Angular 20+ style, e.g. `MasterCard` in `master-card.ts`).

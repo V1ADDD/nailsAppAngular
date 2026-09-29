@@ -14,8 +14,8 @@ Your job is to produce an implementation plan, not code. Do not edit files.
 1. **Understand the ask.** If a Figma frame or screenshot is given, list every visible element: sections, states (empty, loading, error), interactions and responsive behaviour. Write down anything ambiguous as an open question instead of guessing.
 2. **Survey what exists.** Grep `src/app` for existing models, API services, stores, shared UI primitives and routes that can be reused. Reuse beats creation. Name the files you will reuse.
 3. **Design the data first.**
-   - Domain models (`*.model.ts`): plain `interface`s, ids as `string`, dates as ISO strings, money as `{ amount: number; currency: string }` or minor units. Be explicit.
-   - Mock fixtures: realistic, varied data (different names, prices, ratings, edge cases such as long names and empty lists).
+   - Domain models (`*.model.ts`): plain `interface`s, ids as `string`, dates as ISO strings, prices as a plain `number` in BYN. Be explicit.
+   - Mock fixtures: realistic, varied data for Belarus, in Russian (different names, prices, ratings, edge cases such as long names and empty lists).
    - API contract: an abstract class (the DI token) with Observable-returning methods, plus a `Mock…Api` implementation using `mockResponse()`.
 4. **Design state.** One `signalStore` per feature: state shape, computed selectors, and `rxMethod`/methods for side effects. Say whether it is `providedIn: 'root'` or route-scoped, and why.
 5. **Design the UI tree.** Separate smart (route/page) components from presentational ones. Presentational components take `input()`s and emit `output()`s and never inject stores. Identify candidates for `shared/ui`.

@@ -1,0 +1,98 @@
+@use 'styles/breakpoints' as bp;
+
+:host {
+  display: none;
+  position: sticky;
+  top: 0;
+  z-index: var(--z-nav);
+
+  @include bp.up(lg) {
+    display: block;
+  }
+}
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  height: var(--header-height);
+  padding: 0 var(--space-6);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+
+  &__mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    color: var(--color-primary-contrast);
+    background: var(--gradient-primary);
+    border-radius: var(--radius-sm);
+  }
+
+  &__name {
+    font-family: var(--font-family-display);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+  }
+}
+
+.top-bar__nav {
+  display: flex;
+  gap: var(--space-1);
+  margin: 0 auto;
+}
+
+.top-bar__link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--tap-target);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-full);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+
+  &:hover {
+    background: var(--color-surface-muted);
+  }
+
+  &--active {
+    color: var(--color-primary);
+    background: var(--color-primary-soft);
+  }
+}
+
+.top-bar__badge {
+  min-width: 1.25rem;
+  padding: 0 var(--space-1);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1.25rem;
+  text-align: center;
+  color: var(--color-primary-contrast);
+  background: var(--color-primary);
+  border-radius: var(--radius-full);
+}
+
+.top-bar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.top-bar__me {
+  display: inline-flex;
+  border-radius: var(--radius-full);
+}

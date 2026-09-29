@@ -1,3 +1,25 @@
-.app-shell {
+@use 'styles/breakpoints' as bp;
+
+:host {
+  display: flex;
+  flex-direction: column;
   min-height: 100dvh;
+}
+
+// Pages fill the space between the top bar (lg+) and the tab bar (below lg).
+.app-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+
+  @include bp.up(lg) {
+    padding-bottom: 0;
+  }
+
+  > :not(router-outlet) {
+    flex: 1;
+    min-height: 0;
+  }
 }

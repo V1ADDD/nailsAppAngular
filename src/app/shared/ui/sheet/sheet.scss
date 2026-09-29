@@ -1,0 +1,83 @@
+@use 'styles/breakpoints' as bp;
+
+.sheet {
+  width: 100%;
+  max-width: 100%;
+  max-height: 90dvh;
+  margin: auto 0 0;
+  padding: 0;
+  color: var(--color-text);
+  background: transparent;
+  border: none;
+
+  &::backdrop {
+    background: rgb(23 21 28 / 45%);
+  }
+
+  &[open] .sheet__panel {
+    animation: sheet-up var(--transition-base);
+  }
+
+  @include bp.up(md) {
+    width: min(32rem, calc(100% - var(--space-8)));
+    margin: auto;
+  }
+}
+
+.sheet__panel {
+  display: flex;
+  flex-direction: column;
+  max-height: 90dvh;
+  background: var(--color-surface);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+
+  @include bp.up(md) {
+    border-radius: var(--radius-xl);
+  }
+}
+
+.sheet__grip {
+  align-self: center;
+  width: 3rem;
+  height: 4px;
+  margin-top: var(--space-2);
+  background: var(--color-border-strong);
+  border-radius: var(--radius-full);
+
+  @include bp.up(md) {
+    display: none;
+  }
+}
+
+.sheet__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-3) var(--space-2) var(--space-5);
+}
+
+.sheet__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+.sheet__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 var(--space-5) var(--space-4);
+}
+
+.sheet__footer:not(:empty) {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5) calc(var(--space-4) + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--color-border);
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+}

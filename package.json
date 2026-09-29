@@ -27,6 +27,7 @@
     "@angular/router": "^21.2.0",
     "@ngrx/operators": "^21.1.1",
     "@ngrx/signals": "^21.1.1",
+    "leaflet": "^1.9.4",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
@@ -36,6 +37,7 @@
     "@angular/compiler-cli": "^21.2.0",
     "@eslint/js": "^10.0.1",
     "@types/jest": "^30.0.0",
+    "@types/leaflet": "^1.9.22",
     "@types/node": "^24.19.0",
     "angular-eslint": "21.4.0",
     "eslint": "^10.3.0",

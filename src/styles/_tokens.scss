@@ -1,46 +1,109 @@
 // Design tokens: the single source of truth for colors, spacing, type, radii, shadows.
-// PLACEHOLDER values: replace with the tokens from the Figma design.
-// Components must use these variables, never raw hex/px values.
+// Values sampled from the Figma Make screenshots in /design. Components must use these
+// variables, never raw hex/px values.
 :root {
-  // Color
-  --color-bg: #fdfbfa;
+  // Surfaces
+  --color-bg: #f7f5f0; // warm off-white page background
   --color-surface: #ffffff;
-  --color-text: #1f1a1c;
-  --color-text-muted: #6b6266;
-  --color-primary: #c2185b;
+  --color-surface-muted: #f1f1f4; // inactive pill tabs, secondary buttons
+  --color-surface-sunken: #efece5; // search field, map placeholder
+
+  // Text
+  --color-text: #17151c;
+  --color-text-secondary: #5b5866;
+  --color-text-muted: #9a97a3;
+  --color-text-inverse: #ffffff;
+
+  // Brand
+  --color-primary: #7b2cf5;
+  --color-primary-hover: #6a1fe0;
+  --color-primary-soft: #f1e9ff; // chips, "Мастер" tag background
   --color-primary-contrast: #ffffff;
-  --color-border: #e8e1e4;
-  --color-danger: #c62828;
-  --color-success: #2e7d32;
+  --gradient-primary: linear-gradient(135deg, #9a5cff 0%, #7b2cf5 100%);
+
+  // Borders
+  --color-border: #e7e3da;
+  --color-border-strong: #d6d1c5;
+
+  // Status
+  --color-success: #12b85a; // online dot, confirm button
+  --color-success-soft: #e8f9ef;
+  --color-success-border: #b9ebcd;
+  --color-success-text: #11813f;
+  --color-warning: #f59e0b; // pending dot
+  --color-warning-soft: #fffbea;
+  --color-warning-border: #f6e6a6;
+  --color-star: #f5a300;
+  --color-danger: #ef3b3b;
+  --color-danger-soft: #fff2f2;
+  --color-danger-border: #fad4d4;
+  --color-info: #2f80ed; // user location dot
+
+  // Map
+  --color-map-land: #ece6dc;
+  --color-map-block: #cfc3b5;
 
   // Spacing (4px scale)
+  --space-0-5: 0.125rem;
   --space-1: 0.25rem;
+  --space-1-5: 0.375rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
   --space-4: 1rem;
+  --space-5: 1.25rem;
   --space-6: 1.5rem;
   --space-8: 2rem;
+  --space-10: 2.5rem;
   --space-12: 3rem;
+  --space-16: 4rem;
 
   // Typography
-  --font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-size-sm: 0.875rem;
-  --font-size-md: 1rem;
-  --font-size-lg: 1.25rem;
-  --font-size-xl: 1.75rem;
+  --font-family: 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-family-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --font-size-2xs: 0.6875rem; // 11px: badges
+  --font-size-xs: 0.75rem; // 12px: timestamps, captions
+  --font-size-sm: 0.875rem; // 14px: secondary text, chips
+  --font-size-md: 1rem; // 16px: body, names
+  --font-size-lg: 1.125rem; // 18px: section titles
+  --font-size-xl: 1.375rem; // 22px
+  --font-size-2xl: 1.75rem; // 28px: page titles (display serif)
   --font-weight-regular: 400;
   --font-weight-medium: 500;
+  --font-weight-semibold: 600;
   --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
   --line-height: 1.5;
+  --line-height-tight: 1.25;
+  --letter-spacing-caps: 0.04em;
 
-  // Shape & depth
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 16px;
+  // Shape
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
   --radius-full: 9999px;
-  --shadow-sm: 0 1px 2px rgb(0 0 0 / 6%);
-  --shadow-md: 0 4px 12px rgb(0 0 0 / 8%);
+
+  // Depth
+  --shadow-sm: 0 1px 2px rgb(23 21 28 / 6%);
+  --shadow-md: 0 4px 14px rgb(23 21 28 / 8%);
+  --shadow-lg: 0 10px 30px rgb(23 21 28 / 12%);
+  --shadow-primary: 0 6px 18px rgb(123 44 245 / 35%);
+
+  // Layout
+  --header-height: 4rem; // desktop top bar
+  --bottom-nav-height: 4.5rem; // mobile tab bar
+  --content-max-width: 72rem;
+  --tap-target: 2.75rem; // 44px minimum touch target
 
   // Motion
   --transition-fast: 120ms ease;
+  --transition-base: 200ms ease;
+
+  // Layers
+  --z-map-controls: 500;
+  --z-sheet: 600;
+  --z-nav: 700;
+  --z-overlay: 900;
+  --z-toast: 1000;
 }
