@@ -1,0 +1,71 @@
+<section class="list" aria-labelledby="chats-title">
+  <header class="list__head">
+    <h1 id="chats-title" class="display-title">Чаты</h1>
+    @if (store.totalUnread()) {
+      <span class="list__total">
+        <span aria-hidden="true">{{ store.totalUnread() }}</span>
+        <span class="visually-hidden">непрочитанных: {{ store.totalUnread() }}</span>
+      </span>
+    }
+  </header>
+
+  @if (session.isMaster()) {
+    <div class="list__roles">
+      <app-segmented
+        label="Режим чатов"
+        [options]="roleOptions"
+        [value]="session.activeRole()"
+        (valueChange)="setRole($event)"
+      />
+    </div>
+  }
+
+  @if (store.loading()) {
+    <ul class="list__rows" aria-busy="true" aria-label="Загрузка чатов">
+      @for (row of skeletonRows; track row) {
+        <li class="skeleton-row">
+          <span class="skeleton skeleton-row__avatar"></span>
+          <span class="skeleton-row__lines">
+            <span class="skeleton skeleton-row__line"></span>
+            <span class="skeleton skeleton-row__line skeleton-row__line--short"></span>
+          </span>
+        </li>
+      }
+    </ul>
+  } @else if (store.error()) {
+    <div class="empty-state" role="alert">
+      <app-icon name="alert-triangle" [size]="32" />
+      <p class="empty-state__title">Не удалось загрузить чаты</p>
+      <p>{{ store.error() }}</p>
+      <button type="button" class="btn btn--primary" (click)="retry()">Повторить</button>
+    </div>
+  } @else {
+    <ul class="list__rows">
+      @for (summary of store.entities(); track summary.chat.id) {
+        <li>
+          <app-chat-row [summary]="summary" [active]="summary.chat.id === store.activeChatId()" />
+        </li>
+      } @empty {
+        <li class="empty-state">
+          <app-icon name="message-square" [size]="36" />
+          <p class="empty-state__title">Пока нет переписок</p>
+          <p>Найдите мастера на карте</p>
+          <a class="btn btn--primary" routerLink="/">Открыть карту</a>
+        </li>
+      }
+    </ul>
+  }
+</section>
+
+<div class="thread">
+  <router-outlet />
+  @if (!activeChatId()) {
+    <div class="placeholder">
+      <span class="placeholder__art" aria-hidden="true">
+        <app-icon name="message-square" [size]="40" />
+      </span>
+      <p class="placeholder__title">Выберите чат</p>
+      <p>Здесь откроется переписка</p>
+    </div>
+  }
+</div>

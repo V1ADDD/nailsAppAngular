@@ -1,0 +1,54 @@
+<ng-template #summary>
+  <span class="lh__title" aria-live="polite">
+    @if (loading()) {
+      Ищем мастеров…
+    } @else {
+      {{ count() | plural: ['мастер', 'мастера', 'мастеров'] }} рядом
+    }
+  </span>
+  @if (!loading() && onlineCount() > 0) {
+    <span class="lh__online"><span class="dot dot--success"></span>{{ onlineCount() }} онлайн</span>
+  }
+</ng-template>
+
+@if (collapsible()) {
+  <h2 class="lh__heading">
+    <button
+      type="button"
+      class="lh__toggle"
+      [attr.aria-expanded]="expanded()"
+      aria-controls="search-results"
+      (pointerdown)="onPointerDown($event)"
+      (pointerup)="onPointerUp($event)"
+      (pointercancel)="onPointerUp($event)"
+      (click)="toggle()"
+    >
+      <span class="lh__grip" aria-hidden="true"></span>
+      <span class="lh__row">
+        <ng-container [ngTemplateOutlet]="summary" />
+        <app-icon
+          class="lh__chevron"
+          [name]="expanded() ? 'chevron-down' : 'chevron-up'"
+          [size]="20"
+        />
+      </span>
+    </button>
+  </h2>
+} @else {
+  <h2 class="lh__heading lh__row lh__row--static">
+    <ng-container [ngTemplateOutlet]="summary" />
+  </h2>
+}
+
+@if (showSort()) {
+  <label class="lh__sort">
+    <app-icon name="arrow-up-down" [size]="16" />
+    <span class="visually-hidden">Сортировка</span>
+    <select class="lh__select" (change)="onSort($event)">
+      @for (o of sortOptions; track o[0]) {
+        <option [value]="o[0]" [selected]="o[0] === sort()">{{ o[1] }}</option>
+      }
+    </select>
+    <app-icon name="chevron-down" [size]="14" />
+  </label>
+}

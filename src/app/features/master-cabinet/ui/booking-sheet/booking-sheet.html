@@ -1,0 +1,126 @@
+<app-sheet title="Запись" [(open)]="open">
+  @if (booking(); as b) {
+    <div class="card-info">
+      <div class="card-info__head">
+        <app-avatar [name]="b.clientName" [src]="b.clientPhotoUrl" [size]="56" />
+        <div class="card-info__who">
+          <p class="card-info__name">{{ b.clientName }}</p>
+          <p class="card-info__source">
+            {{ b.source === 'external' ? 'Запись не с сайта' : 'Клиент сайта' }}
+          </p>
+        </div>
+        <span class="status" [class]="'status--' + row()!.status">{{ row()!.label }}</span>
+      </div>
+
+      <dl class="facts">
+        <div>
+          <dt>Услуга</dt>
+          <dd>{{ b.serviceName }}</dd>
+        </div>
+        <div>
+          <dt>Когда</dt>
+          <dd>{{ b.start | relativeDay }}, {{ b.start | slotDate }}</dd>
+        </div>
+        <div>
+          <dt>Длительность</dt>
+          <dd>{{ b.durationMin }} мин</dd>
+        </div>
+        <div>
+          <dt>Стоимость</dt>
+          <dd>{{ b.price | price }}</dd>
+        </div>
+      </dl>
+
+      @if (awaitingClient()) {
+        <p class="hint">Клиент подтвердит запись в чате.</p>
+      }
+
+      <label class="field">
+        <span class="field__label">Заметки (видите только вы)</span>
+        <textarea
+          class="input"
+          name="note"
+          rows="3"
+          placeholder="Например: аллергия на акрил, любит нюд"
+          [(ngModel)]="note"
+        ></textarea>
+      </label>
+      <button
+        type="button"
+        class="btn btn--outline btn--sm"
+        [disabled]="saving() || note() === (b.note ?? '')"
+        (click)="saveNote.emit({ bookingId: b.id, note: note() })"
+      >
+        Сохранить заметку
+      </button>
+
+      @if (cancelling()) {
+        <fieldset class="cancel">
+          <legend class="field__label">Отмена записи</legend>
+          <label class="field">
+            <span class="field__hint">Причина*</span>
+            <textarea
+              class="input"
+              name="reason"
+              rows="2"
+              [(ngModel)]="reason"
+              [attr.aria-invalid]="reasonTouched() && !reason().trim()"
+            ></textarea>
+            @if (reasonTouched() && !reason().trim()) {
+              <span class="field__error">Укажите причину отмены</span>
+            }
+          </label>
+          <label class="check">
+            <input type="checkbox" name="mutual" [(ngModel)]="mutual" />
+            <span>Отмена по договорённости с клиентом (без последствий)</span>
+          </label>
+          <div class="actions">
+            <button type="button" class="btn btn--ghost" (click)="cancelling.set(false)">
+              Назад
+            </button>
+            <button
+              type="button"
+              class="btn btn--danger-soft"
+              [disabled]="saving()"
+              (click)="submitCancel()"
+            >
+              Отменить запись
+            </button>
+          </div>
+        </fieldset>
+      }
+    </div>
+  }
+  @if (booking(); as b) {
+    <div sheetFooter class="actions actions--footer">
+      @if (canConfirm()) {
+        <button
+          type="button"
+          class="btn btn--success"
+          [disabled]="saving()"
+          (click)="confirm.emit(b.id)"
+        >
+          Подтвердить
+        </button>
+      }
+      @if (b.clientId) {
+        <button type="button" class="btn btn--primary" (click)="write.emit(b)">Написать</button>
+      }
+      @if (canNoShow()) {
+        <button
+          type="button"
+          class="btn btn--outline"
+          [disabled]="saving() || b.status === 'no-show'"
+          (click)="noShow.emit(b.id)"
+        >
+          Не пришла
+        </button>
+      }
+      @if (canCancel() && !cancelling()) {
+        <button type="button" class="btn btn--outline-danger" (click)="cancelling.set(true)">
+          Отменить
+        </button>
+      }
+    </div>
+  }
+</app-sheet>

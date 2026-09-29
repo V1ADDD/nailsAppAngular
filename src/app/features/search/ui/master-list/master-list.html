@@ -1,0 +1,60 @@
+@if (loading()) {
+  <ul class="list" aria-busy="true" aria-label="Загружаем мастеров">
+    @for (s of skeletons; track s) {
+      <li class="skeleton-card" aria-hidden="true">
+        <span class="skeleton skeleton-card__photo"></span>
+        <span class="skeleton-card__lines">
+          <span class="skeleton skeleton-card__line"></span>
+          <span class="skeleton skeleton-card__line skeleton-card__line--short"></span>
+        </span>
+      </li>
+    }
+  </ul>
+} @else if (error()) {
+  <div class="empty-state" role="alert">
+    <p class="empty-state__title">Не удалось загрузить мастеров</p>
+    <p>{{ error() }}</p>
+    <button type="button" class="btn btn--primary btn--pill" (click)="retry.emit()">
+      Повторить
+    </button>
+  </div>
+} @else if (results().length === 0) {
+  <div class="empty-state">
+    <p class="empty-state__title">Никого не нашли</p>
+    @if (hasCriteria()) {
+      <p>Попробуйте изменить запрос или ослабить фильтры.</p>
+      <button type="button" class="btn btn--outline btn--pill" (click)="resetFilters.emit()">
+        Сбросить фильтры
+      </button>
+    } @else {
+      <p>Рядом пока нет мастеров.</p>
+    }
+  </div>
+} @else {
+  <ul class="list">
+    @for (r of results(); track r.master.id) {
+      <li
+        class="list__item"
+        [attr.data-master-id]="r.master.id"
+        (mouseenter)="hover.emit(r.master.id)"
+        (mouseleave)="hover.emit(null)"
+        (focusin)="hover.emit(r.master.id)"
+        (focusout)="hover.emit(null)"
+      >
+        @if (layout() === 'carousel') {
+          <app-master-mini-card [result]="r" [active]="r.master.id === selectedId()" />
+        } @else {
+          <app-master-card
+            [result]="r"
+            [active]="r.master.id === selectedId()"
+            [favorite]="favoriteIds().has(r.master.id)"
+            [own]="r.master.id === ownId()"
+            (book)="book.emit({ masterId: r.master.id, subcategoryId: $event })"
+            (write)="write.emit(r.master.id)"
+            (favoriteToggle)="favorite.emit(r.master.id)"
+          />
+        }
+      </li>
+    }
+  </ul>
+}

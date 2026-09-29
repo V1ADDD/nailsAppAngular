@@ -1,0 +1,87 @@
+<app-sheet [title]="service() ? 'Изменить услугу' : 'Новая услуга'" [(open)]="open">
+  <form id="service-form" class="form" novalidate (ngSubmit)="submit()">
+    <label class="field">
+      <span class="field__label">Категория</span>
+      <select class="input" name="category" [disabled]="!!service()" [(ngModel)]="categoryId">
+        @for (category of catalog; track category.id) {
+          <option [value]="category.id">{{ category.name }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="field">
+      <span class="field__label">Услуга</span>
+      <select
+        class="input"
+        name="subcategory"
+        [disabled]="!!service() || !subcategories().length"
+        [(ngModel)]="subcategoryId"
+      >
+        @for (sub of subcategories(); track sub.id) {
+          <option [value]="sub.id">{{ sub.name }}</option>
+        }
+      </select>
+      @if (!subcategories().length) {
+        <span class="field__hint">Все услуги этой категории уже в прайсе</span>
+      }
+    </label>
+
+    <fieldset class="kinds">
+      <legend class="field__label">Цена</legend>
+      <label class="kind">
+        <input type="radio" name="kind" value="exact" [(ngModel)]="kind" />
+        <span>Точная</span>
+      </label>
+      <label class="kind">
+        <input type="radio" name="kind" value="from" [(ngModel)]="kind" />
+        <span>От</span>
+      </label>
+      <label class="kind">
+        <input type="radio" name="kind" value="free" [(ngModel)]="kind" />
+        <span>Бесплатно</span>
+      </label>
+    </fieldset>
+
+    <div class="row">
+      @if (kind() !== 'free') {
+        <label class="field">
+          <span class="field__label">Стоимость, BYN*</span>
+          <input
+            class="input"
+            type="number"
+            inputmode="decimal"
+            min="0"
+            step="0.5"
+            name="amount"
+            [(ngModel)]="amount"
+            [attr.aria-invalid]="!!amountError()"
+          />
+        </label>
+      }
+      <label class="field">
+        <span class="field__label">Длительность</span>
+        <select class="input" name="duration" [(ngModel)]="duration">
+          @for (minutes of durations; track minutes) {
+            <option [ngValue]="minutes">{{ minutes }} мин</option>
+          }
+        </select>
+      </label>
+    </div>
+
+    @if (market(); as range) {
+      <p class="market">
+        Обычно эта услуга стоит от {{ range.from | price }} до {{ range.to | price }}
+      </p>
+    }
+  </form>
+  <div sheetFooter>
+    <button
+      type="submit"
+      form="service-form"
+      class="btn btn--gradient btn--block"
+      [disabled]="saving() || !canSave()"
+    >
+      Сохранить
+    </button>
+  </div>
+</app-sheet>

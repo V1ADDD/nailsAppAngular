@@ -1,0 +1,61 @@
+<app-profile-section heading="Отзывы" icon="star">
+  @if (loading()) {
+    <div class="skeletons" aria-busy="true" aria-label="Загрузка отзывов">
+      @for (i of [1, 2]; track i) {
+        <div class="skeleton skeleton--review"></div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="state" role="alert">
+      <p>Не удалось загрузить отзывы</p>
+      <button type="button" class="btn btn--outline btn--sm" (click)="retry.emit()">
+        Повторить
+      </button>
+    </div>
+  } @else if (reviews().length === 0) {
+    <div class="state">
+      <p class="state__title">Пока нет отзывов</p>
+      <p>Отзыв можно оставить после визита к мастеру</p>
+    </div>
+  } @else {
+    <div class="summary">
+      <span class="summary__value">{{ average() | number: '1.1-1' }}</span>
+      <div class="summary__meta">
+        <app-rating [value]="average()" [size]="16" />
+        <span>{{ reviews().length | plural: forms }}</span>
+      </div>
+    </div>
+
+    <ul class="list" role="list">
+      @for (review of visible(); track review.id) {
+        <li class="review">
+          <div class="review__head">
+            <app-avatar name="Клиент" [size]="36" />
+            <div class="review__who">
+              <span class="review__name">Клиент</span>
+              <span class="review__service">{{ serviceName(review.subcategoryId) }}</span>
+            </div>
+            <time class="review__date" [attr.datetime]="review.date">
+              {{ review.date | date: 'd MMMM y' }}
+            </time>
+          </div>
+          <app-rating [value]="review.rating" />
+          @if (review.text) {
+            <p class="review__text">{{ review.text }}</p>
+          }
+        </li>
+      }
+    </ul>
+
+    @if (hasMore()) {
+      <button
+        type="button"
+        class="btn btn--outline btn--block"
+        [attr.aria-expanded]="expanded()"
+        (click)="expanded.set(!expanded())"
+      >
+        {{ expanded() ? 'Свернуть' : 'Показать все ' + reviews().length }}
+      </button>
+    }
+  }
+</app-profile-section>

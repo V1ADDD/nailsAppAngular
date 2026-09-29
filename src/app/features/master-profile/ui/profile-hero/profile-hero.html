@@ -1,0 +1,91 @@
+@let m = master();
+<section class="card hero" aria-labelledby="master-name">
+  <div class="hero__top">
+    <app-avatar
+      class="hero__photo"
+      [name]="m.name"
+      [src]="m.photoUrl"
+      [size]="96"
+      shape="rounded"
+      [online]="m.online"
+    />
+    <div class="hero__id">
+      <h1 class="hero__name" id="master-name">{{ m.name }}</h1>
+      <p class="hero__specialty">{{ m.specialty }}</p>
+      <p class="hero__rating">
+        <app-rating [value]="m.rating" [showValue]="true" />
+        <span class="hero__reviews">· {{ m.reviewsCount | plural: reviewForms }}</span>
+      </p>
+    </div>
+    @if (!own()) {
+      <button
+        type="button"
+        class="btn btn--icon btn--outline hero__fav"
+        [class.hero__fav--on]="favorite()"
+        [attr.aria-pressed]="favorite()"
+        [attr.aria-label]="favorite() ? 'Убрать из избранного' : 'Добавить в избранное'"
+        (click)="toggleFavorite.emit()"
+      >
+        <app-icon name="heart" [size]="20" [filled]="favorite()" />
+      </button>
+    }
+  </div>
+
+  @if (m.verification === 'verified') {
+    <p class="tag tag--success hero__verified">
+      <app-icon name="badge-check" [size]="14" />
+      Личность подтверждена
+    </p>
+  }
+
+  <ul class="facts" role="list">
+    <li class="fact">
+      @if (m.online) {
+        <span class="dot dot--success" aria-hidden="true"></span>
+        <span class="fact__online">онлайн</span>
+      } @else {
+        <app-icon name="clock" [size]="16" />
+        <span>{{ replyText() }}</span>
+      }
+    </li>
+    <li class="fact">
+      <app-icon name="briefcase" [size]="16" />
+      <span>Опыт {{ m.experienceYears | plural: yearForms }}</span>
+    </li>
+    <li class="fact">
+      <app-icon name="map-pin" [size]="16" />
+      <span>
+        {{ place() }}
+        @if (distance()) {
+          <span class="fact__distance">· {{ distance() }} от вас</span>
+        }
+      </span>
+    </li>
+  </ul>
+
+  @if (own()) {
+    <div class="own">
+      <p class="own__text">
+        <app-icon name="info" [size]="16" />
+        Это ваш профиль — так его видят клиенты
+      </p>
+      <a class="btn btn--outline btn--block" routerLink="/profile/master">Открыть кабинет</a>
+    </div>
+  } @else {
+    <div class="actions">
+      <button type="button" class="btn btn--primary btn--lg actions__book" (click)="book.emit()">
+        <app-icon name="calendar" [size]="18" />
+        Записаться
+      </button>
+      <button
+        type="button"
+        class="btn btn--outline btn--lg"
+        [disabled]="messaging()"
+        (click)="write.emit()"
+      >
+        <app-icon name="message-square" [size]="18" />
+        Написать
+      </button>
+    </div>
+  }
+</section>

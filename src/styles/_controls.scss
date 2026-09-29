@@ -182,7 +182,7 @@
   }
 
   &--warning {
-    color: #9a6200;
+    color: var(--color-warning-text);
     background: var(--color-warning-soft);
     border-color: var(--color-warning-border);
   }

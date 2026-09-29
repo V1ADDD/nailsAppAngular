@@ -1,0 +1,84 @@
+@let b = booking();
+<article class="booking">
+  <div class="booking__main">
+    <app-avatar [name]="b.masterName" [src]="b.masterPhotoUrl" [size]="56" shape="rounded" />
+    <div class="booking__info">
+      <h3 class="booking__master">
+        <a class="booking__link" [routerLink]="['/masters', b.masterId]">{{ b.masterName }}</a>
+      </h3>
+      <p class="booking__service">{{ b.serviceName }}</p>
+      <p class="booking__meta">
+        <time [attr.datetime]="b.start">{{ b.start | slotDate }}</time>
+        <span class="booking__address"> · {{ b.address }}</span>
+      </p>
+      <p class="booking__price">{{ b.price | price }}</p>
+    </div>
+    @if (!past()) {
+      <button
+        type="button"
+        class="btn btn--sm booking__reschedule"
+        [disabled]="busy()"
+        [attr.aria-label]="'Перенести запись к мастеру ' + b.masterName"
+        (click)="reschedule.emit()"
+      >
+        Перенести
+      </button>
+    }
+  </div>
+
+  <div class="booking__status">
+    <span [class]="'tag tag--' + status().tone">{{ status().label }}</span>
+    @if (deadline()) {
+      <span class="booking__hint">
+        <app-icon name="clock" [size]="14" />
+        {{ deadline() }}
+      </span>
+    }
+  </div>
+  @if (cancellation()) {
+    <p class="booking__reason">{{ cancellation() }}</p>
+  }
+
+  <div class="booking__actions">
+    @if (!past() && needsConfirmation()) {
+      <button
+        type="button"
+        class="btn btn--sm btn--primary"
+        [disabled]="busy()"
+        (click)="confirm.emit()"
+      >
+        <app-icon name="check" [size]="16" />
+        Подтвердить
+      </button>
+    }
+    <button
+      type="button"
+      class="btn btn--sm btn--outline"
+      [attr.aria-label]="'Написать мастеру ' + b.masterName"
+      (click)="chat.emit()"
+    >
+      <app-icon name="message-square" [size]="16" />
+      Написать
+    </button>
+    @if (past()) {
+      <a
+        class="btn btn--sm btn--outline"
+        [routerLink]="bookAgain().path"
+        [queryParams]="bookAgain().query"
+      >
+        <app-icon name="calendar" [size]="16" />
+        Записаться снова
+      </a>
+    } @else {
+      <button
+        type="button"
+        class="btn btn--sm btn--outline-danger"
+        [disabled]="busy()"
+        [attr.aria-label]="'Отменить запись к мастеру ' + b.masterName"
+        (click)="cancelBooking.emit()"
+      >
+        Отменить
+      </button>
+    }
+  </div>
+</article>

@@ -4,12 +4,18 @@
   background: var(--color-map-land);
 }
 
+.leaflet-tile-pane {
+  // Mute OSM colours towards the design's beige map.
+  filter: saturate(0.35) sepia(0.18) brightness(1.03);
+}
+
 .leaflet-control-attribution {
   font-size: var(--font-size-2xs);
   background: rgb(255 255 255 / 75%) !important;
 }
 
 .map-pin {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;

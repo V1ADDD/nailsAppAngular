@@ -1,11 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
-import { filter, map } from 'rxjs';
+import { filter, map, tap } from 'rxjs';
 import { type Role } from '@app/core/data/models';
 import { SessionStore } from '@app/core/session/session.store';
 import { Segmented, type SegmentedOption } from '@app/shared/ui/segmented/segmented';
 import { Swipe } from '@app/shared/ui/swipe';
+
+const roleOf = (url: string): Role => (url.startsWith('/profile/master') ? 'master' : 'client');
 
 const ROLE_OPTIONS: readonly SegmentedOption<Role>[] = [
   { value: 'client', label: 'Клиент' },
@@ -49,20 +51,22 @@ export class ProfileShell {
     this.router.events.pipe(
       filter((e) => e instanceof NavigationEnd),
       map(() => this.router.url),
+      // Keep the session's active role in sync with the visible cabinet (chats follow it).
+      tap((url) => this.session.setRole(roleOf(url))),
+      takeUntilDestroyed(),
     ),
     { initialValue: this.router.url },
   );
 
-  protected readonly role = computed<Role>(() =>
-    this.url().startsWith('/profile/master') ? 'master' : 'client',
-  );
+  protected readonly role = computed<Role>(() => roleOf(this.url()));
 
   constructor() {
-    // Keep the session's active role in sync with the visible cabinet (chats follow it).
-    effect(() => this.session.setRole(this.role()));
+    this.session.setRole(roleOf(this.router.url));
   }
 
   protected switchTo(role: Role): void {
-    if (role !== this.role()) void this.router.navigate(['/profile', role]);
+    if (role === this.role()) return;
+    this.session.setRole(role);
+    void this.router.navigate(['/profile', role]);
   }
 }

@@ -1,0 +1,95 @@
+<div class="toolbar">
+  <p class="toolbar__count">{{ photos().length }} из {{ limit() }} фото</p>
+  @if (photos().length) {
+    <button type="button" class="btn btn--ghost btn--sm" (click)="toggleSelecting()">
+      {{ selecting() ? 'Готово' : 'Выбрать' }}
+    </button>
+  }
+</div>
+
+@if (photos().length) {
+  <ul class="grid" aria-label="Фото портфолио">
+    @for (photo of photos(); track photo.id; let i = $index) {
+      <li class="tile" [class.tile--selected]="selected().has(photo.id)">
+        @if (photo.url?.startsWith('blob:')) {
+          <!-- Mock uploads are object URLs, which NgOptimizedImage rejects (NG02952). -->
+          <img
+            class="tile__blob"
+            [src]="photo.url"
+            [alt]="photo.caption || 'Работа ' + (i + 1)"
+            loading="lazy"
+          />
+        } @else if (photo.url) {
+          <img
+            [ngSrc]="photo.url"
+            fill
+            sizes="(min-width: 768px) 200px, 33vw"
+            [alt]="photo.caption || 'Работа ' + (i + 1)"
+          />
+        } @else {
+          <span
+            class="tile__placeholder"
+            role="img"
+            [attr.aria-label]="photo.caption || 'Работа ' + (i + 1)"
+            [style.background]="placeholder(photo.hue)"
+          ></span>
+        }
+        @if (selecting()) {
+          <label class="tile__check">
+            <input
+              type="checkbox"
+              [checked]="selected().has(photo.id)"
+              (change)="toggle(photo.id)"
+            />
+            <span class="visually-hidden">Выбрать фото {{ i + 1 }}</span>
+          </label>
+        } @else {
+          <button
+            type="button"
+            class="tile__delete"
+            [attr.aria-label]="'Удалить фото ' + (i + 1)"
+            [disabled]="busy()"
+            (click)="remove.emit([photo.id])"
+          >
+            <app-icon name="trash" [size]="16" />
+          </button>
+        }
+      </li>
+    }
+  </ul>
+} @else {
+  <div class="empty-state">
+    <p class="empty-state__title">Портфолио пока пустое</p>
+    <p>Добавьте до {{ limit() }} фото своих работ — так клиентам проще выбрать.</p>
+  </div>
+}
+
+<div class="actions">
+  @if (selecting()) {
+    <button
+      type="button"
+      class="btn btn--danger-soft btn--block"
+      [disabled]="busy() || !selected().size"
+      (click)="removeSelected()"
+    >
+      Удалить выбранные ({{ selected().size }})
+    </button>
+  } @else if (left()) {
+    <label class="btn btn--outline btn--block upload" [class.upload--busy]="busy()">
+      <app-icon name="camera" [size]="18" />
+      Добавить фото
+      <input
+        class="visually-hidden"
+        type="file"
+        accept="image/*"
+        multiple
+        [disabled]="busy()"
+        (change)="onFiles(fileInput)"
+        #fileInput
+      />
+    </label>
+  } @else {
+    <p class="limit">Достигнут лимит {{ limit() }} фото. Удалите лишние, чтобы добавить новые.</p>
+  }
+  <p class="rules">Без дублей, неприемлемого контента и сильной ретуши. Публикуется сразу.</p>
+</div>

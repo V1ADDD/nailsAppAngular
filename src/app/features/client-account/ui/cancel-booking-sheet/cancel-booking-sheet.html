@@ -1,0 +1,81 @@
+<app-sheet [title]="title()" [(open)]="open">
+  <form class="form" [id]="formId" (submit)="submit($event)">
+    @if (booking(); as b) {
+      <p class="summary">
+        <strong>{{ b.masterName }}</strong> · {{ b.serviceName }} ·
+        <time [attr.datetime]="b.start">{{ b.start | slotDate }}</time>
+      </p>
+    }
+    @if (mode() === 'reschedule') {
+      <p class="form__lead">
+        Перенос — это отмена текущей записи и новая запись на другое время. После отмены откроется
+        запись к этому мастеру, где можно выбрать свободное окно.
+      </p>
+    }
+
+    <fieldset class="options">
+      <legend class="options__legend">
+        Причина {{ mode() === 'cancel' ? 'отмены' : 'переноса' }}
+      </legend>
+      @for (preset of presets(); track preset) {
+        <label class="option">
+          <input
+            type="radio"
+            [name]="formId"
+            [value]="preset"
+            [checked]="choice() === preset"
+            (change)="choice.set(preset)"
+          />
+          {{ preset }}
+        </label>
+      }
+      <label class="option">
+        <input
+          type="radio"
+          [name]="formId"
+          [value]="other"
+          [checked]="choice() === other"
+          (change)="choice.set(other)"
+        />
+        Другое
+      </label>
+    </fieldset>
+
+    @if (choice() === other) {
+      <label class="field">
+        <span class="field__label">Опишите причину</span>
+        <textarea
+          class="input"
+          required
+          maxlength="300"
+          [value]="otherText()"
+          (input)="onText($event)"
+        ></textarea>
+      </label>
+    }
+
+    <label class="check">
+      <input type="checkbox" [checked]="mutual()" (change)="onMutual($event)" />
+      <span>По договорённости с мастером (без последствий)</span>
+    </label>
+
+    @if (!mutual()) {
+      <p class="warning">
+        <app-icon name="alert-triangle" [size]="18" />
+        Односторонняя отмена снижает рейтинг
+      </p>
+    }
+  </form>
+
+  <div sheetFooter class="form__footer">
+    <button type="button" class="btn btn--outline" (click)="open.set(false)">Назад</button>
+    <button
+      type="submit"
+      class="btn btn--primary"
+      [attr.form]="formId"
+      [disabled]="!reason() || busy()"
+    >
+      {{ mode() === 'cancel' ? 'Отменить запись' : 'Отменить и выбрать время' }}
+    </button>
+  </div>
+</app-sheet>

@@ -1,0 +1,50 @@
+@let e = entry();
+<article class="client" [attr.aria-label]="e.client.name">
+  <div class="client__head">
+    <app-avatar [name]="e.client.name" [src]="e.client.photoUrl" [size]="48" />
+    <div class="client__who">
+      <h3 class="client__name">{{ e.client.name }}</h3>
+      <p class="client__meta">
+        {{ e.visits | plural: ['визит', 'визита', 'визитов'] }} · Предпочитает: {{ preferred() }}
+      </p>
+    </div>
+  </div>
+
+  @if (e.nextBooking; as next) {
+    <p class="client__next">
+      <app-icon name="calendar" [size]="16" />
+      <span>
+        {{ next.start | relativeDay }} · {{ next.start | date: 'HH:mm' }} · {{ next.serviceName }}
+      </span>
+    </p>
+  } @else if (e.lastBooking; as last) {
+    <p class="client__last">
+      Последний визит: {{ last.start | date: 'd MMMM' }} · {{ last.serviceName }}
+    </p>
+  }
+
+  @if (e.reviews.length) {
+    <ul class="client__reviews" aria-label="Ваши отзывы о клиенте">
+      @for (review of e.reviews; track review.id) {
+        <li>
+          <app-rating [value]="review.rating" [size]="12" />
+          <p>{{ review.text }}</p>
+        </li>
+      }
+    </ul>
+  }
+
+  <div class="client__actions">
+    <button
+      type="button"
+      class="btn btn--primary btn--sm"
+      [disabled]="busy()"
+      (click)="write.emit(e.client.id)"
+    >
+      <app-icon name="message-square" [size]="16" /> Написать
+    </button>
+    <a class="btn btn--outline btn--sm" [href]="telHref()">
+      <app-icon name="phone" [size]="16" /> {{ e.client.phone }}
+    </a>
+  </div>
+</article>

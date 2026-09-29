@@ -1,0 +1,113 @@
+@use 'styles/breakpoints' as bp;
+
+:host {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+
+  @include bp.up(md) {
+    padding: var(--space-3) var(--space-6);
+  }
+}
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  border-radius: var(--radius-md);
+}
+
+.banner__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.banner__thumb {
+  width: 2.5rem;
+  height: 2.5rem;
+  object-fit: cover;
+  border-radius: var(--radius-xs);
+}
+
+.composer {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.composer__icon,
+.composer__send {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-target);
+  height: var(--tap-target);
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+}
+
+.composer__icon {
+  margin-bottom: var(--space-0-5);
+  color: var(--color-text-secondary);
+  background: transparent;
+
+  &:hover:not(:disabled) {
+    background: var(--color-surface-muted);
+  }
+}
+
+.composer__input {
+  flex: 1;
+  min-width: 0;
+  min-height: 3rem;
+  max-height: 8rem;
+  padding: var(--space-3) var(--space-5);
+  field-sizing: content;
+  font-size: var(--font-size-md);
+  line-height: var(--line-height);
+  resize: none;
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+
+  &::placeholder {
+    color: var(--color-text-muted);
+  }
+
+  &:focus {
+    border-color: var(--color-primary);
+    outline: none;
+  }
+}
+
+.composer__send {
+  margin-bottom: var(--space-0-5);
+  color: var(--color-text-muted);
+  background: var(--color-surface-muted);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+
+  &--ready {
+    color: var(--color-primary-contrast);
+    background: var(--color-primary);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .composer__send {
+    transition: none;
+  }
+}

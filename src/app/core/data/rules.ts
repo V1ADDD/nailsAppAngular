@@ -40,8 +40,14 @@ export function priceValue(price: Price): number {
   return price.kind === 'free' ? 0 : price.amount;
 }
 
-/** Cheapest service among `services`, shown as «от X р» when there is more than one price. */
-export function minPrice(services: readonly MasterService[]): Price | null {
+/**
+ * Cheapest service among `services`, shown as «от X р» when there is more than one price.
+ * Add-ons (removal, nail art) are ignored unless nothing else is left, so the headline
+ * price is what a real visit costs (ТЗ 1.2: no Kufar-style «cheapest item» prices).
+ */
+export function minPrice(all: readonly MasterService[]): Price | null {
+  const main = all.filter((s) => !findSubcategory(s.subcategoryId)?.addon);
+  const services = main.length ? main : all;
   if (services.length === 0) return null;
   const cheapest = services.reduce((a, b) => (priceValue(b.price) < priceValue(a.price) ? b : a));
   if (services.length === 1) return cheapest.price;
@@ -177,11 +183,14 @@ export function slotStatusFor(
 
 /**
  * ТЗ 6.4: an unconfirmed booking releases its slot 24 h before the start when it was made
- * more than 24 h ahead, otherwise 2 h before the start.
+ * more than 24 h ahead, otherwise 2 h before the start. Edge case the ТЗ doesn't cover: a
+ * booking made less than 2 h ahead would be released immediately, so the master gets
+ * until the start instead.
  */
 export function pendingReleaseAt(booking: Pick<Booking, 'start' | 'createdAt'>): Date {
   const start = new Date(booking.start).getTime();
   const leadTime = start - new Date(booking.createdAt).getTime();
+  if (leadTime <= 2 * HOUR_MS) return new Date(start);
   return new Date(start - (leadTime > 24 * HOUR_MS ? 24 : 2) * HOUR_MS);
 }
 

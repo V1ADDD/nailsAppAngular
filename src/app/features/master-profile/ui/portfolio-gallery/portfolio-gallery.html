@@ -1,0 +1,60 @@
+<app-profile-section heading="Портфолио" icon="image" [meta]="photos().length + ' фото'">
+  <ul class="grid" role="list">
+    @for (photo of visible(); track photo.id; let i = $index) {
+      <li class="grid__item" [class.grid__item--revealed]="i >= 6">
+        <button
+          type="button"
+          class="grid__button"
+          [attr.aria-label]="'Открыть: ' + altFor(photo, i)"
+          (click)="current.set(i)"
+        >
+          <app-photo-tile [photo]="photo" [alt]="altFor(photo, i)" />
+        </button>
+      </li>
+    }
+  </ul>
+  @if (hiddenCount() > 0) {
+    <button
+      type="button"
+      class="btn btn--outline btn--block"
+      [attr.aria-expanded]="expanded()"
+      (click)="expanded.set(!expanded())"
+    >
+      {{ expanded() ? 'Свернуть' : 'Показать все ' + photos().length }}
+      <app-icon [name]="expanded() ? 'chevron-up' : 'chevron-down'" [size]="18" />
+    </button>
+  }
+</app-profile-section>
+
+<app-sheet [title]="lightboxTitle()" [open]="lightboxOpen()" (openChange)="setLightbox($event)">
+  @if (currentPhoto(); as photo) {
+    <div
+      class="lightbox"
+      role="group"
+      aria-roledescription="галерея"
+      appSwipe
+      (swipeLeft)="step(1)"
+      (swipeRight)="step(-1)"
+    >
+      <app-photo-tile
+        class="lightbox__photo"
+        [photo]="photo"
+        [alt]="altFor(photo, current() ?? 0)"
+        [iconSize]="48"
+      />
+      @if (photo.caption) {
+        <p class="lightbox__caption">{{ photo.caption }}</p>
+      }
+    </div>
+  }
+  <div sheetFooter class="lightbox__nav">
+    <button type="button" class="btn btn--outline" (click)="step(-1)">
+      <app-icon name="chevron-left" [size]="18" />
+      Назад
+    </button>
+    <button type="button" class="btn btn--outline" (click)="step(1)">
+      Далее
+      <app-icon name="chevron-right" [size]="18" />
+    </button>
+  </div>
+</app-sheet>

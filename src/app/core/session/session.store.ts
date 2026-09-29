@@ -104,7 +104,10 @@ export const SessionStore = signalStore(
         patchState(store, { authenticated: false, role: 'client', snapshot: null, unreadTotal: 0 });
       },
       setRole(role: Role): void {
+        if (role === store.role()) return;
         patchState(store, { role });
+        // The badge counts chats of the active role (ТЗ 2.2).
+        if (store.authenticated() && store.snapshot()) refreshUnread();
       },
       setSnapshot(snapshot: AccountSnapshot): void {
         patchState(store, { snapshot });

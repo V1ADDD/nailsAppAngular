@@ -11,7 +11,7 @@
   // Text
   --color-text: #17151c;
   --color-text-secondary: #5b5866;
-  --color-text-muted: #9a97a3;
+  --color-text-muted: #6f6c79; // ≥4.5:1 on white and on --color-bg (AA)
   --color-text-inverse: #ffffff;
 
   // Brand
@@ -33,6 +33,7 @@
   --color-warning: #f59e0b; // pending dot
   --color-warning-soft: #fffbea;
   --color-warning-border: #f6e6a6;
+  --color-warning-text: #9a6200;
   --color-star: #f5a300;
   --color-danger: #ef3b3b;
   --color-danger-soft: #fff2f2;

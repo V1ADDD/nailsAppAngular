@@ -1,0 +1,141 @@
+@use 'styles/breakpoints' as bp;
+
+:host {
+  display: block;
+}
+
+.page {
+  display: grid;
+  align-content: start;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  // Room for the sticky action bar above the tab bar.
+  padding: var(--space-4) var(--space-4) calc(var(--space-16) + var(--space-8));
+
+  @include bp.up(md) {
+    padding-inline: var(--space-6);
+  }
+
+  @include bp.up(lg) {
+    padding: var(--space-6) var(--space-8) var(--space-12);
+  }
+}
+
+.page__nav {
+  display: flex;
+}
+
+.not-found app-icon {
+  color: var(--color-primary);
+}
+
+// Mobile/tablet: one column; the sidebar dissolves so its cards interleave with the main ones.
+.layout,
+.side,
+.main {
+  display: contents;
+}
+
+.layout > * > * {
+  order: 5;
+}
+
+.o-hero {
+  order: 1;
+}
+
+.o-slots {
+  order: 2;
+}
+
+.o-services {
+  order: 3;
+}
+
+.o-portfolio {
+  order: 4;
+}
+
+.o-contacts {
+  order: 9;
+}
+
+@include bp.up(lg) {
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 22.5rem;
+    align-items: start;
+    gap: var(--space-6);
+  }
+
+  .main,
+  .side {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .main {
+    gap: var(--space-5);
+  }
+
+  .side {
+    position: sticky;
+    top: calc(var(--header-height) + var(--space-4));
+    grid-column: 2;
+    grid-row: 1;
+    max-height: calc(100dvh - var(--header-height) - var(--space-8));
+    overflow-y: auto;
+    scrollbar-width: thin;
+    border-radius: var(--radius-lg);
+  }
+
+  .layout > * > * {
+    order: 0;
+  }
+}
+
+@include bp.up(xl) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 24rem;
+  }
+}
+
+.action-bar {
+  position: fixed;
+  inset-inline: 0;
+  bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+  z-index: var(--z-map-controls);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+
+  @include bp.up(md) {
+    padding-inline: var(--space-6);
+  }
+
+  @include bp.up(lg) {
+    display: none;
+  }
+}
+
+.action-bar__price {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-extrabold);
+  white-space: nowrap;
+}
+
+.action-bar__cta {
+  flex: 1;
+  margin-left: auto;
+
+  @include bp.up(md) {
+    flex: 0 1 auto;
+    padding-inline: var(--space-10);
+  }
+}

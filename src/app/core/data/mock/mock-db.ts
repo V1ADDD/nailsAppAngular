@@ -153,6 +153,7 @@ export class MockDb {
             reason: 'Запись не подтверждена вовремя — окно освободилось',
             mutual: true,
             at: now.toISOString(),
+            expired: true,
           };
           this.freeSlotOf(b);
           this.systemMessage(

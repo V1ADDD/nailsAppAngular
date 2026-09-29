@@ -1,0 +1,30 @@
+@use 'styles/breakpoints' as bp;
+
+// Tab panel box: padded on the warm background on mobile, flush inside the page grid above.
+@mixin host {
+  :host {
+    display: grid;
+    align-content: start;
+    gap: var(--space-4);
+    padding: var(--space-4);
+
+    @include bp.up(md) {
+      padding: 0;
+    }
+  }
+}
+
+// Card list: one column, two from `$from` up.
+@mixin list($from: md) {
+  .list {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    @include bp.up($from) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+}

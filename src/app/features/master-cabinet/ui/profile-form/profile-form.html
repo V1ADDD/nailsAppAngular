@@ -1,0 +1,161 @@
+<form class="form" novalidate (ngSubmit)="submit()">
+  <label class="field">
+    <span class="field__label">Имя*</span>
+    <input
+      class="input"
+      name="name"
+      autocomplete="name"
+      [(ngModel)]="name"
+      [attr.aria-invalid]="!!error('name')"
+      aria-describedby="pf-name-error"
+    />
+    @if (error('name'); as message) {
+      <span class="field__error" id="pf-name-error">{{ message }}</span>
+    }
+  </label>
+
+  <div class="form__row">
+    <label class="field">
+      <span class="field__label">Телефон*</span>
+      <input
+        class="input"
+        type="tel"
+        name="phone"
+        autocomplete="tel"
+        [(ngModel)]="phone"
+        [attr.aria-invalid]="!!error('phone')"
+        aria-describedby="pf-phone-error"
+      />
+      @if (error('phone'); as message) {
+        <span class="field__error" id="pf-phone-error">{{ message }}</span>
+      }
+    </label>
+    <label class="field">
+      <span class="field__label">Почта*</span>
+      <input
+        class="input"
+        type="email"
+        name="email"
+        autocomplete="email"
+        [(ngModel)]="email"
+        [attr.aria-invalid]="!!error('email')"
+        aria-describedby="pf-email-error"
+      />
+      @if (error('email'); as message) {
+        <span class="field__error" id="pf-email-error">{{ message }}</span>
+      }
+    </label>
+  </div>
+
+  <div class="form__row">
+    <label class="field">
+      <span class="field__label">Город*</span>
+      <input
+        class="input"
+        name="city"
+        autocomplete="address-level2"
+        [(ngModel)]="city"
+        [attr.aria-invalid]="!!error('city')"
+        aria-describedby="pf-city-error"
+      />
+      @if (error('city'); as message) {
+        <span class="field__error" id="pf-city-error">{{ message }}</span>
+      }
+    </label>
+    <label class="field">
+      <span class="field__label">Адрес*</span>
+      <input
+        class="input"
+        name="address"
+        autocomplete="street-address"
+        [(ngModel)]="address"
+        [attr.aria-invalid]="!!error('address')"
+        aria-describedby="pf-address-hint pf-address-error"
+      />
+      <span class="field__hint" id="pf-address-hint">Точка на карте уточняется по адресу</span>
+      @if (error('address'); as message) {
+        <span class="field__error" id="pf-address-error">{{ message }}</span>
+      }
+    </label>
+  </div>
+
+  <div class="form__row">
+    <label class="field">
+      <span class="field__label">Специализация</span>
+      <select class="input" name="specialty" [(ngModel)]="specialty">
+        @for (option of specialties; track option) {
+          <option [value]="option">{{ option }}</option>
+        }
+      </select>
+    </label>
+    <label class="field">
+      <span class="field__label">Опыт, лет</span>
+      <input
+        class="input"
+        type="number"
+        inputmode="numeric"
+        min="0"
+        max="60"
+        name="experience"
+        [(ngModel)]="experience"
+      />
+    </label>
+  </div>
+
+  <label class="field">
+    <span class="field__label">О себе</span>
+    <textarea
+      class="input"
+      name="about"
+      rows="4"
+      placeholder="Расскажите о своём опыте, материалах и подходе"
+      [(ngModel)]="about"
+    ></textarea>
+  </label>
+
+  <app-courses-editor [(courses)]="courses" />
+
+  <fieldset class="form__group">
+    <legend class="field__label">Контакты для клиентов</legend>
+    <div class="form__row form__row--3">
+      <label class="field">
+        <span class="field__hint">Telegram</span>
+        <input class="input" name="telegram" placeholder="@username" [(ngModel)]="telegram" />
+      </label>
+      <label class="field">
+        <span class="field__hint">Viber</span>
+        <input class="input" type="tel" name="viber" placeholder="+375…" [(ngModel)]="viber" />
+      </label>
+      <label class="field">
+        <span class="field__hint">Instagram</span>
+        <input class="input" name="instagram" placeholder="@username" [(ngModel)]="instagram" />
+      </label>
+    </div>
+  </fieldset>
+
+  <fieldset class="form__group">
+    <legend class="field__label">Статус и записи</legend>
+    <label class="switch">
+      <span>Показывать статус «онлайн»</span>
+      <input type="checkbox" role="switch" name="online" [(ngModel)]="online" />
+    </label>
+    <label class="switch">
+      <span>Автоподтверждение записей</span>
+      <input type="checkbox" role="switch" name="autoConfirm" [(ngModel)]="autoConfirm" />
+    </label>
+    @if (autoConfirm()) {
+      <label class="field">
+        <span class="field__hint">Подтверждать автоматически через</span>
+        <select class="input" name="autoConfirmAfter" [(ngModel)]="autoConfirmAfter">
+          @for (minutes of autoConfirmOptions; track minutes) {
+            <option [ngValue]="minutes">{{ minutes }} мин</option>
+          }
+        </select>
+      </label>
+    }
+  </fieldset>
+
+  <button type="submit" class="btn btn--gradient btn--lg btn--block" [disabled]="saving()">
+    {{ saving() ? 'Сохраняем…' : 'Сохранить профиль' }}
+  </button>
+</form>

@@ -1,0 +1,72 @@
+@let w = wizard();
+<app-sheet title="Запись к мастеру" [open]="w.open" (openChange)="onOpenChange($event)">
+  <form class="flow" id="booking-form" (submit)="$event.preventDefault(); submitted.emit()">
+    <fieldset class="step">
+      <legend class="step__title"><span class="step__num">1</span> Услуга</legend>
+      <div class="services">
+        @for (s of master().services; track s.id) {
+          <label class="service" [class.service--active]="s.subcategoryId === w.subcategoryId">
+            <input
+              type="radio"
+              name="service"
+              [value]="s.subcategoryId"
+              [checked]="s.subcategoryId === w.subcategoryId"
+              (change)="serviceChange.emit(s.subcategoryId)"
+            />
+            <span class="service__name">
+              {{ serviceName(s.subcategoryId) }}
+              <span class="service__duration">{{ duration(s.durationMin) }}</span>
+            </span>
+            <span class="service__price">{{ s.price | price }}</span>
+          </label>
+        }
+      </div>
+    </fieldset>
+
+    <section class="step" aria-labelledby="booking-step-time">
+      <h3 class="step__title" id="booking-step-time">
+        <span class="step__num">2</span> Дата и время
+      </h3>
+      <app-slot-picker
+        [days]="days()"
+        [day]="w.day"
+        [slots]="daySlots()"
+        [slotId]="w.slotId"
+        (dayChange)="dayChange.emit($event)"
+        (slotChange)="slotChange.emit($event)"
+      />
+    </section>
+
+    <section class="step" aria-labelledby="booking-step-check">
+      <h3 class="step__title" id="booking-step-check">
+        <span class="step__num">3</span> Проверьте запись
+      </h3>
+      <app-booking-summary
+        [master]="master()"
+        [service]="service()"
+        [slot]="slot()"
+        [conflicts]="w.conflicts"
+        [checking]="w.checking"
+        [releaseAt]="releaseAt()"
+      />
+    </section>
+
+    @if (w.error) {
+      <p class="error" role="alert">{{ w.error }}</p>
+    }
+  </form>
+
+  <div sheetFooter class="footer">
+    <button
+      type="submit"
+      form="booking-form"
+      class="btn btn--gradient btn--lg btn--block"
+      [disabled]="!canSubmit()"
+    >
+      {{ w.submitting ? 'Бронируем…' : 'Забронировать' }}
+      @if (service(); as s) {
+        <span class="footer__price">· {{ s.price | price }}</span>
+      }
+    </button>
+  </div>
+</app-sheet>

@@ -1,0 +1,65 @@
+:host {
+  display: block;
+}
+
+.list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0 var(--space-4) var(--space-4);
+  list-style: none;
+}
+
+// Collapsed mobile sheet: one horizontally scrolling row of compact cards.
+:host(.is-carousel) .list {
+  grid-auto-columns: minmax(14rem, 78%);
+  grid-auto-flow: column;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-padding-inline: var(--space-4);
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+:host(.is-carousel) .list__item {
+  scroll-snap-align: start;
+}
+
+:host(.is-carousel) .empty-state {
+  padding: var(--space-4) var(--space-6) var(--space-6);
+}
+
+.skeleton-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+
+  &__photo {
+    width: 3.5rem;
+    height: 3.5rem;
+    flex-shrink: 0;
+    border-radius: var(--radius-md);
+  }
+
+  &__lines {
+    display: grid;
+    flex: 1;
+    gap: var(--space-2);
+  }
+
+  &__line {
+    height: 0.75rem;
+
+    &--short {
+      width: 55%;
+    }
+  }
+}

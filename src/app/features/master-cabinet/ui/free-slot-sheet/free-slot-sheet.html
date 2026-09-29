@@ -1,0 +1,110 @@
+<app-sheet title="Свободное окно" [(open)]="open">
+  @if (row(); as r) {
+    <div class="body">
+      <p class="when">
+        {{ r.start | relativeDay }}, {{ r.start | slotDate }} · {{ r.durationMin }} мин
+      </p>
+
+      @if (r.past) {
+        <p class="note">Это окно уже прошло — его можно только удалить.</p>
+      } @else {
+        <app-tabs label="Действие с окном" [tabs]="modes" [(value)]="mode" />
+
+        @switch (mode()) {
+          @case ('external') {
+            <form class="body" (ngSubmit)="submitExternal()">
+              <p class="note">Запись придёт не с сайта — окно будет помечено «не с сайта».</p>
+              <label class="field">
+                <span class="field__label">Имя клиента*</span>
+                <input class="input" name="clientName" [(ngModel)]="clientName" />
+              </label>
+              <label class="field">
+                <span class="field__label">Услуга*</span>
+                <select class="input" name="service" [(ngModel)]="subcategoryId">
+                  @for (service of services(); track service.id) {
+                    <option [value]="service.subcategoryId">
+                      {{ serviceName(service.subcategoryId) }}
+                    </option>
+                  }
+                </select>
+                @if (!services().length) {
+                  <span class="field__error">Сначала добавьте услуги в «Услуги и цены»</span>
+                }
+              </label>
+              <label class="field">
+                <span class="field__label">Заметка</span>
+                <textarea class="input" name="note" rows="2" [(ngModel)]="note"></textarea>
+              </label>
+              <button
+                type="submit"
+                class="btn btn--gradient btn--block"
+                [disabled]="saving() || !canAddExternal()"
+              >
+                Добавить запись не с сайта
+              </button>
+            </form>
+          }
+          @case ('site') {
+            <form class="body" (ngSubmit)="submitSite()">
+              <p class="note">Клиент получит запись в чате и подтвердит её.</p>
+              @if (clients().length) {
+                <label class="field">
+                  <span class="field__label">Клиент</span>
+                  <select class="input" name="client" [(ngModel)]="clientId">
+                    @for (entry of clients(); track entry.client.id) {
+                      <option [value]="entry.client.id">{{ entry.client.name }}</option>
+                    }
+                  </select>
+                </label>
+                <label class="field">
+                  <span class="field__label">Услуга</span>
+                  <select class="input" name="siteService" [(ngModel)]="subcategoryId">
+                    @for (service of services(); track service.id) {
+                      <option [value]="service.subcategoryId">
+                        {{ serviceName(service.subcategoryId) }}
+                      </option>
+                    }
+                  </select>
+                </label>
+                <button
+                  type="submit"
+                  class="btn btn--primary btn--block"
+                  [disabled]="saving() || !subcategoryId()"
+                >
+                  Забронировать через сайт
+                </button>
+              } @else {
+                <p class="note">Пока нет клиентов с сайта, которых можно записать.</p>
+              }
+            </form>
+          }
+          @case ('slot') {
+            <form class="body" (ngSubmit)="submitMove()">
+              <label class="field">
+                <span class="field__label">Новое время начала</span>
+                <input class="input" type="time" name="time" step="900" [(ngModel)]="time" />
+              </label>
+              <button type="submit" class="btn btn--outline btn--block" [disabled]="saving()">
+                Сдвинуть окно
+              </button>
+            </form>
+          }
+        }
+      }
+    </div>
+  }
+  @if (row(); as r) {
+    <div sheetFooter class="footer">
+      @if (r.slot && (r.past || mode() === 'slot')) {
+        <button
+          type="button"
+          class="btn btn--danger-soft btn--block"
+          [disabled]="saving()"
+          (click)="remove.emit(r.slot.id)"
+        >
+          Удалить окно
+        </button>
+      }
+    </div>
+  }
+</app-sheet>

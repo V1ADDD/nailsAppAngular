@@ -1,0 +1,72 @@
+@use 'styles/breakpoints' as bp;
+
+:host {
+  display: block;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @include bp.up(md) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+
+  @include bp.up(lg) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.grid__item--revealed {
+  animation: reveal var(--transition-base) both;
+}
+
+.grid__button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  transition: transform var(--transition-fast);
+
+  &:hover {
+    transform: scale(1.02);
+  }
+}
+
+.lightbox {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.lightbox__photo {
+  width: 100%;
+  border-radius: var(--radius-lg);
+}
+
+.lightbox__caption {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.lightbox__nav {
+  justify-content: space-between;
+  width: 100%;
+
+  .btn {
+    flex: 1;
+  }
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}

@@ -1,0 +1,72 @@
+@if (checking()) {
+  <p class="checking" role="status">Проверяем ваши записи на это время…</p>
+}
+
+@if (conflicts(); as c) {
+  @for (b of c.overlapping; track b.id) {
+    <div class="alert alert--danger" role="alert">
+      <app-icon name="alert-triangle" [size]="18" />
+      <p>
+        У вас уже есть запись на это время: {{ b.masterName }}, {{ b.serviceName }},
+        {{ b.start | slotDate }}. Она будет отменена автоматически.
+      </p>
+    </div>
+  }
+  @for (b of c.tooClose; track b.id) {
+    <div class="alert alert--warning" role="status">
+      <app-icon name="clock" [size]="18" />
+      <p>
+        В этот день у вас есть запись в {{ time(b.start) }} ({{ b.masterName }}, {{ b.address }}) —
+        проверьте, успеете ли доехать.
+      </p>
+    </div>
+  }
+}
+
+<dl class="summary">
+  <div class="summary__row">
+    <dt>Мастер</dt>
+    <dd>{{ master().name }}</dd>
+  </div>
+  <div class="summary__row">
+    <dt>Услуга</dt>
+    <dd>
+      @if (service(); as s) {
+        {{ serviceName(s.subcategoryId) }}
+        <span class="summary__hint">{{ duration(s.durationMin) }}</span>
+      } @else {
+        <span class="summary__hint">не выбрана</span>
+      }
+    </dd>
+  </div>
+  <div class="summary__row">
+    <dt>Когда</dt>
+    <dd>
+      @if (slot(); as s) {
+        {{ s.start | slotDate }}
+      } @else {
+        <span class="summary__hint">выберите время</span>
+      }
+    </dd>
+  </div>
+  <div class="summary__row">
+    <dt>Адрес</dt>
+    <dd>{{ master().address }}, {{ master().city }}</dd>
+  </div>
+  <div class="summary__row summary__row--total">
+    <dt>Стоимость</dt>
+    <dd>{{ service()?.price | price }}</dd>
+  </div>
+</dl>
+
+<p class="note">
+  <app-icon name="info" [size]="16" />
+  <span>
+    Мастер подтвердит запись в чате.
+    @if (releaseAt(); as at) {
+      Если не подтвердит до {{ at | slotDate }}, окно освободится автоматически.
+    } @else {
+      Если не подтвердит — окно освободится за 24 ч (или за 2 ч) до начала.
+    }
+  </span>
+</p>

@@ -1,0 +1,79 @@
+<app-sheet title="Шаблон графика" [(open)]="open">
+  <form class="body" (ngSubmit)="submitTemplate()">
+    <fieldset class="group">
+      <legend class="field__label">Рабочие дни</legend>
+      <div class="days">
+        @for (day of weekdays; track day.value) {
+          <button
+            type="button"
+            class="chip"
+            [attr.aria-pressed]="workDays().includes(day.value)"
+            [attr.aria-label]="day.full"
+            (click)="toggleDay(day.value)"
+          >
+            {{ day.short }}
+          </button>
+        }
+      </div>
+    </fieldset>
+
+    <div class="row">
+      <label class="field">
+        <span class="field__label">Начало</span>
+        <input class="input" type="time" name="from" step="900" [(ngModel)]="from" />
+      </label>
+      <label class="field">
+        <span class="field__label">Конец</span>
+        <input class="input" type="time" name="to" step="900" [(ngModel)]="to" />
+      </label>
+    </div>
+
+    <label class="field">
+      <span class="field__label">Длина окна</span>
+      <select class="input" name="slotMinutes" [(ngModel)]="slotMinutes">
+        @for (minutes of slotLengths; track minutes) {
+          <option [ngValue]="minutes">{{ minutes }} мин</option>
+        }
+      </select>
+    </label>
+
+    @if (templateError(); as error) {
+      <p class="field__error" role="alert">{{ error }}</p>
+    }
+    <p class="field__hint">
+      Свободные окна на {{ days }} дней пересоздадутся, занятые и забронированные останутся.
+    </p>
+    <button
+      type="submit"
+      class="btn btn--gradient btn--block"
+      [disabled]="saving() || !!templateError()"
+    >
+      Создать окна на {{ days }} дней
+    </button>
+  </form>
+
+  <form class="body manual" (ngSubmit)="submitManual()">
+    <h3 class="manual__title">Добавить окно вручную</h3>
+    <div class="row row--3">
+      <label class="field">
+        <span class="field__label">Дата</span>
+        <input class="input" type="date" name="manualDate" [min]="today" [(ngModel)]="manualDate" />
+      </label>
+      <label class="field">
+        <span class="field__label">Время</span>
+        <input class="input" type="time" name="manualTime" step="900" [(ngModel)]="manualTime" />
+      </label>
+      <label class="field">
+        <span class="field__label">Длина</span>
+        <select class="input" name="manualDuration" [(ngModel)]="manualDuration">
+          @for (minutes of slotLengths; track minutes) {
+            <option [ngValue]="minutes">{{ minutes }} мин</option>
+          }
+        </select>
+      </label>
+    </div>
+    <button type="submit" class="btn btn--outline btn--block" [disabled]="saving()">
+      Добавить окно
+    </button>
+  </form>
+</app-sheet>

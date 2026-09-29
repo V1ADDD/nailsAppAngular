@@ -1,4 +1,4 @@
-import { Directive, input, output } from '@angular/core';
+import { Directive, ElementRef, inject, input, output } from '@angular/core';
 
 const MIN_DISTANCE_PX = 50;
 
@@ -20,10 +20,14 @@ export class Swipe {
   readonly swipeLeft = output<void>();
   readonly swipeRight = output<void>();
 
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   protected start: { x: number; y: number } | null = null;
 
   protected onDown(event: PointerEvent): void {
     if (event.pointerType === 'mouse') return; // swipes are a touch gesture
+    // The innermost swipe area wins: a day/week/month swipe must not also switch roles.
+    const owner = (event.target as Element | null)?.closest?.('[appSwipe]');
+    if (owner && owner !== this.host) return;
     this.start = { x: event.clientX, y: event.clientY };
   }
 

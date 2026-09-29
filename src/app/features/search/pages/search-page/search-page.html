@@ -1,0 +1,81 @@
+<h1 class="visually-hidden">Мастера рядом на карте</h1>
+
+<header class="top">
+  <app-search-bar
+    class="top__search"
+    [value]="text()"
+    (valueChange)="onText($event)"
+    [suggestions]="suggestions()"
+    (pick)="pick($event)"
+  />
+  <app-filter-chips
+    class="top__chips"
+    [filters]="store.filters()"
+    (openSection)="openFilters($event)"
+    (toggleFilter)="toggle($event)"
+  />
+</header>
+
+<app-search-map
+  class="map"
+  [pins]="pins()"
+  [center]="store.location()"
+  [selectedId]="store.selectedId()"
+  [highlightId]="store.hoveredId()"
+  (pinSelect)="selectPin($event)"
+/>
+
+<button type="button" class="support-tab" (click)="support.open()">
+  <app-icon name="message-square" [size]="18" />
+  <span class="support-tab__label">Напишите нам</span>
+</button>
+
+<section class="panel" [class.panel--expanded]="expanded()" aria-label="Список мастеров">
+  @if (session.isGuest() && (isMd() || !expanded())) {
+    <a
+      class="btn btn--primary btn--pill login-fab"
+      routerLink="/login"
+      [queryParams]="{ redirect: '/' }"
+    >
+      Войти
+    </a>
+  }
+  <app-list-header
+    [count]="store.results().length"
+    [onlineCount]="store.onlineCount()"
+    [loading]="store.loading()"
+    [collapsible]="!isMd()"
+    [(expanded)]="expanded"
+    [showSort]="layout() === 'list'"
+    [sort]="store.sort()"
+    (sortChange)="store.setSort($event)"
+  />
+  <app-master-list
+    id="search-results"
+    class="panel__list"
+    [results]="store.results()"
+    [loading]="store.loading() || (store.slotsLoading() && store.filters().freeWindow !== null)"
+    [error]="store.error()"
+    [layout]="layout()"
+    [selectedId]="store.selectedId()"
+    [favoriteIds]="session.favoriteIds()"
+    [ownId]="session.master()?.id ?? null"
+    [hasCriteria]="store.hasCriteria()"
+    (book)="book($event)"
+    (write)="message($event)"
+    (favorite)="favorite($event)"
+    (hover)="store.hover($event)"
+    (retry)="store.load()"
+    (resetFilters)="reset()"
+  />
+</section>
+
+<app-filters-sheet
+  [(open)]="sheetOpen"
+  [section]="sheetSection()"
+  [filters]="draft()"
+  (filtersChange)="onDraft($event)"
+  [previewCount]="previewCount()"
+  [previewLoading]="store.slotsLoading()"
+  (apply)="applyFilters()"
+/>

@@ -1,0 +1,8 @@
+@use '../sheet-form' as sf;
+
+@include sf.form;
+@include sf.options;
+
+.option__text {
+  display: grid;
+}

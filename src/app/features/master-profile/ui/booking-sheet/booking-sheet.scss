@@ -1,0 +1,118 @@
+:host {
+  display: contents;
+}
+
+.flow {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.step {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.step__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+}
+
+.step__num {
+  display: inline-grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  font-size: var(--font-size-xs);
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  border-radius: var(--radius-full);
+}
+
+.services {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.service {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--tap-target);
+  padding: var(--space-3);
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast);
+
+  &:hover {
+    border-color: var(--color-border-strong);
+  }
+
+  &--active {
+    background: var(--color-primary-soft);
+    border-color: var(--color-primary);
+  }
+
+  &:focus-within {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  input {
+    flex-shrink: 0;
+    width: 1.125rem;
+    height: 1.125rem;
+    margin: 0;
+    accent-color: var(--color-primary);
+  }
+
+  input:focus-visible {
+    outline: none;
+  }
+}
+
+.service__name {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  font-weight: var(--font-weight-semibold);
+}
+
+.service__duration {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text-secondary);
+}
+
+.service__price {
+  font-weight: var(--font-weight-extrabold);
+  white-space: nowrap;
+}
+
+.error {
+  padding: var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  background: var(--color-danger-soft);
+  border: 1px solid var(--color-danger-border);
+  border-radius: var(--radius-md);
+}
+
+.footer {
+  width: 100%;
+}
+
+.footer__price {
+  font-weight: var(--font-weight-semibold);
+  opacity: 0.9;
+}

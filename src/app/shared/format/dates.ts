@@ -4,9 +4,17 @@ import { APP_LOCALE } from '@app/core/locale';
 
 const TZ = '+0300'; // Europe/Minsk, no DST
 
+/** CLDR ru abbreviations that differ from the design's three-letter style. */
+const SHORT_MONTHS: Record<string, string> = { февр: 'фев', сент: 'сен', нояб: 'ноя' };
+
 export function fmt(date: Date | string | number, format: string): string {
   // ru month abbreviations carry a dot («авг.»); the design drops it («28 авг»).
-  return formatDate(date, format, APP_LOCALE, TZ).replace(/\./g, '');
+  return formatDate(date, format, APP_LOCALE, TZ)
+    .replace(/\./g, '')
+    .replace(/(февр|сент|нояб)(?![а-яё])/gi, (m) => {
+      const short = SHORT_MONTHS[m.toLowerCase()]!;
+      return m === m.toUpperCase() ? short.toUpperCase() : short;
+    });
 }
 
 /** Minsk calendar day key, e.g. '2026-09-29'. */

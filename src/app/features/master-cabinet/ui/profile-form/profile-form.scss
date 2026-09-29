@@ -1,0 +1,30 @@
+@use 'styles/breakpoints' as bp;
+@use '../cabinet' as c;
+
+@include c.switch-row;
+
+.form {
+  @include c.stack;
+}
+
+.form__row {
+  @include c.two-cols;
+
+  &--3 {
+    @include bp.up(md) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+}
+
+.form__group {
+  @include c.stack(var(--space-2));
+
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.input[aria-invalid='true'] {
+  border-color: var(--color-danger);
+}

@@ -96,6 +96,20 @@ describe('prices', () => {
     expect(minPrice(master({}).services)).toEqual({ kind: 'from', amount: 35 });
   });
 
+  it('ignores add-ons for the headline price', () => {
+    const services = [
+      ...master({}).services,
+      {
+        id: 's3',
+        subcategoryId: 'manicure-removal',
+        price: { kind: 'exact', amount: 8 },
+        durationMin: 20,
+      },
+    ] as const;
+    expect(minPrice(services)).toEqual({ kind: 'from', amount: 35 });
+    expect(minPrice([services[2]])).toEqual({ kind: 'exact', amount: 8 });
+  });
+
   it('keeps an exact price when there is a single service', () => {
     expect(minPrice([master({}).services[0]!])).toEqual({ kind: 'exact', amount: 45 });
   });
@@ -176,6 +190,14 @@ describe('slots & bookings', () => {
       createdAt: '2026-10-10T00:00:00.000Z',
     });
     expect(release.toISOString()).toBe('2026-10-10T08:00:00.000Z');
+  });
+
+  it('gives the master until the start when booked less than 2 h ahead', () => {
+    const release = pendingReleaseAt({
+      start: '2026-10-10T10:00:00.000Z',
+      createdAt: '2026-10-10T09:00:00.000Z',
+    });
+    expect(release.toISOString()).toBe('2026-10-10T10:00:00.000Z');
   });
 
   it('detects overlapping and too-close bookings', () => {

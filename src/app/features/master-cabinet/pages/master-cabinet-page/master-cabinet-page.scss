@@ -1,0 +1,98 @@
+@use 'styles/breakpoints' as bp;
+
+:host {
+  display: block;
+  padding-bottom: var(--space-8);
+}
+
+.head {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.head__inner,
+.page {
+  width: 100%;
+  max-width: 47.5rem;
+  margin: 0 auto;
+  padding-inline: var(--space-4);
+
+  @include bp.up(lg) {
+    max-width: var(--content-max-width);
+    padding-inline: var(--space-6);
+  }
+}
+
+.head__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 5rem;
+}
+
+.head__avatar {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-10);
+  height: var(--space-10);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary-contrast);
+  background: var(--gradient-primary);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-primary);
+}
+
+.page {
+  padding-top: var(--space-5);
+}
+
+.stack,
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.page__skeleton {
+  height: 4rem;
+  border-radius: var(--radius-lg);
+
+  &--tall {
+    height: 16rem;
+  }
+}
+
+.page__onboarding {
+  max-width: 35rem;
+  margin: 0 auto;
+}
+
+// Mobile / tablet: one stack in the ТЗ order. The column wrappers dissolve and `order`
+// interleaves their sections. Desktop: two independent columns.
+.col {
+  display: contents;
+}
+
+@for $i from 1 through 7 {
+  .order-#{$i} {
+    order: $i;
+  }
+}
+
+@include bp.up(lg) {
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    align-items: start;
+    gap: var(--space-5);
+  }
+
+  .col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+}

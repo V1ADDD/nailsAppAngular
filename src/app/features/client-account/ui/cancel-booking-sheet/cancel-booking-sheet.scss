@@ -1,0 +1,44 @@
+@use '../sheet-form' as sf;
+
+@include sf.form;
+@include sf.options;
+
+.summary {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-md);
+
+  strong {
+    color: var(--color-text);
+  }
+}
+
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+
+  input {
+    flex-shrink: 0;
+    width: 1.125rem;
+    height: 1.125rem;
+    margin: var(--space-0-5) 0 0;
+    accent-color: var(--color-primary);
+  }
+}
+
+.warning {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+  border: 1px solid var(--color-danger-border);
+  border-radius: var(--radius-md);
+}

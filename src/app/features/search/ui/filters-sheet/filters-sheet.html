@@ -1,0 +1,136 @@
+@let f = filters();
+<app-sheet [title]="title()" [(open)]="open">
+  <div class="fs">
+    @if (shows('service')) {
+      <app-choice-group
+        label="Категория"
+        name="filter-category"
+        [options]="categories"
+        [value]="f.categoryId"
+        (valueChange)="setCategory($event)"
+      />
+      @if (subcategories().length) {
+        <app-choice-group
+          label="Услуга"
+          name="filter-subcategory"
+          [options]="subcategories()"
+          [value]="f.subcategoryId"
+          (valueChange)="patch({ subcategoryId: $event })"
+        />
+      }
+    }
+
+    @if (shows('price')) {
+      <fieldset class="fs__group">
+        <legend class="fs__legend">Цена, BYN</legend>
+        <div class="fs__range">
+          <label class="field">
+            <span class="field__label">от</span>
+            <input
+              class="input"
+              type="number"
+              inputmode="decimal"
+              min="0"
+              placeholder="0"
+              [value]="f.priceFrom ?? ''"
+              (change)="setPrice('priceFrom', $event)"
+            />
+          </label>
+          <label class="field">
+            <span class="field__label">до</span>
+            <input
+              class="input"
+              type="number"
+              inputmode="decimal"
+              min="0"
+              placeholder="Любая"
+              [value]="f.priceTo ?? ''"
+              (change)="setPrice('priceTo', $event)"
+            />
+          </label>
+        </div>
+      </fieldset>
+    }
+
+    @if (shows('distance')) {
+      <app-choice-group
+        label="Расстояние от вас"
+        name="filter-distance"
+        [options]="distances"
+        [value]="f.maxDistanceKm"
+        (valueChange)="patch({ maxDistanceKm: $event })"
+      />
+    }
+
+    @if (shows('rating')) {
+      <app-choice-group
+        label="Рейтинг"
+        name="filter-rating"
+        [options]="ratings"
+        [value]="f.minRating"
+        (valueChange)="patch({ minRating: $event })"
+      />
+    }
+
+    @if (shows('window')) {
+      <app-choice-group
+        label="Свободное окно"
+        name="filter-window"
+        [options]="windows"
+        [value]="f.freeWindow"
+        (valueChange)="patch({ freeWindow: $event })"
+      />
+    }
+
+    @if (shows('city')) {
+      <app-choice-group
+        label="Город"
+        name="filter-city"
+        [options]="cities"
+        [value]="f.city"
+        (valueChange)="patch({ city: $event })"
+      />
+    }
+
+    @if (section() === 'all') {
+      <div class="fs__toggles">
+        <label class="fs__toggle">
+          <span>Сейчас онлайн</span>
+          <input
+            type="checkbox"
+            role="switch"
+            [checked]="f.onlineOnly"
+            (change)="setToggle('onlineOnly', $event)"
+          />
+        </label>
+        <label class="fs__toggle">
+          <span>Только проверенные мастера</span>
+          <input
+            type="checkbox"
+            role="switch"
+            [checked]="f.verifiedOnly"
+            (change)="setToggle('verifiedOnly', $event)"
+          />
+        </label>
+      </div>
+    }
+  </div>
+
+  <div sheetFooter class="fs__footer">
+    <button type="button" class="btn btn--outline" (click)="reset()">Сбросить</button>
+    <button
+      type="button"
+      class="btn btn--primary fs__apply"
+      [disabled]="previewLoading()"
+      (click)="apply.emit()"
+    >
+      @if (previewLoading()) {
+        Считаем…
+      } @else if (previewCount() === 0) {
+        Никого не найдено
+      } @else {
+        Показать {{ previewCount() | plural: ['мастера', 'мастеров', 'мастеров'] }}
+      }
+    </button>
+  </div>
+</app-sheet>

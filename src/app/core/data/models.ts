@@ -18,6 +18,11 @@ export interface ServiceSubcategory {
   name: string;
   /** Extra words the search should match («шеллак» → покрытие гель-лаком). */
   synonyms?: readonly string[];
+  /**
+   * Add-on booked together with a main service (removal, nail art). Never used as the
+   * headline «от» price: ТЗ 1.2 calls the Kufar «cheapest item» price misleading.
+   */
+  addon?: boolean;
 }
 
 export interface ServiceCategory {
@@ -169,6 +174,8 @@ export interface Cancellation {
   /** Mutual cancellation has no consequences (ТЗ 6.5). */
   mutual: boolean;
   at: IsoDate;
+  /** ТЗ 6.4: released automatically because nobody confirmed in time; can be restored via chat. */
+  expired?: boolean;
 }
 
 export interface Booking {

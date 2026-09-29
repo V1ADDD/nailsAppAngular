@@ -1,0 +1,52 @@
+<h2 class="visually-hidden">Мои записи</h2>
+<div class="bookings__tabs">
+  <app-tabs
+    variant="underline"
+    label="Записи"
+    [tabs]="subTabs()"
+    [value]="sub()"
+    (valueChange)="subChange.emit($event)"
+  />
+</div>
+
+<div class="bookings__body">
+  @if (store.bookingsLoading() || store.bookingsError()) {
+    <app-panel-state [error]="store.bookingsError()" (retry)="retry()" />
+  } @else {
+    <ul class="list">
+      @for (booking of list(); track booking.id) {
+        <li>
+          <app-booking-card
+            [booking]="booking"
+            [past]="sub() === 'past'"
+            [busy]="store.saving()"
+            (confirm)="confirm(booking)"
+            (chat)="message(booking)"
+            (cancelBooking)="openSheet(booking, 'cancel')"
+            (reschedule)="openSheet(booking, 'reschedule')"
+          />
+        </li>
+      }
+    </ul>
+    @if (list().length === 0) {
+      <div class="empty-state">
+        <app-icon name="calendar" [size]="36" />
+        @if (sub() === 'upcoming') {
+          <p class="empty-state__title">Нет предстоящих записей</p>
+          <p>Выберите мастера на карте и запишитесь на свободное время.</p>
+          <a class="btn btn--primary" routerLink="/">Найти мастера</a>
+        } @else {
+          <p class="empty-state__title">Прошлых записей пока нет</p>
+        }
+      </div>
+    }
+  }
+</div>
+
+<app-cancel-booking-sheet
+  [(open)]="sheetOpen"
+  [booking]="selected()"
+  [mode]="mode()"
+  [busy]="store.saving()"
+  (submitted)="decide($event)"
+/>

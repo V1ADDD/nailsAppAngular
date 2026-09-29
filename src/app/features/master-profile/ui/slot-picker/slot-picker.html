@@ -1,0 +1,51 @@
+<fieldset class="group">
+  <legend class="section-caption">Дата</legend>
+  <div class="chip-row days">
+    @for (d of days(); track d.key) {
+      <button
+        type="button"
+        class="day"
+        [class.day--empty]="d.free === 0"
+        [attr.aria-pressed]="d.key === day()"
+        [attr.aria-label]="dayNumber(d.date) + ', свободно: ' + d.free"
+        (click)="dayChange.emit(d.key)"
+      >
+        <span class="day__weekday">{{ weekday(d.date) }}</span>
+        <span class="day__date">{{ dayNumber(d.date) }}</span>
+        <span class="day__free">{{ d.free ? (d.free | plural: slotForms) : 'нет окон' }}</span>
+      </button>
+    }
+  </div>
+</fieldset>
+
+<fieldset class="group">
+  <legend class="section-caption">Время</legend>
+  @if (slots().length === 0) {
+    <p class="empty">В этот день мастер не работает. Выберите другую дату.</p>
+  } @else {
+    <div class="times">
+      @for (slot of slots(); track slot.id) {
+        @let status = statusLabel(slot);
+        <button
+          type="button"
+          class="time"
+          [class.time--taken]="status"
+          [disabled]="!!status"
+          [attr.aria-pressed]="slot.id === slotId()"
+          [attr.aria-label]="status ? time(slot) + ', ' + status : time(slot)"
+          (click)="slotChange.emit(slot.id)"
+        >
+          <span class="time__value">{{ time(slot) }}</span>
+          @if (status) {
+            <span class="time__status">
+              @if (slot.status === 'pending') {
+                <span class="dot dot--warning" aria-hidden="true"></span>
+              }
+              {{ status }}
+            </span>
+          }
+        </button>
+      }
+    </div>
+  }
+</fieldset>

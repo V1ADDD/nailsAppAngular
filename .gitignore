@@ -50,3 +50,6 @@ CLAUDE.local.md
 
 # Jest
 /coverage
+
+# Visual check output
+/screenshots

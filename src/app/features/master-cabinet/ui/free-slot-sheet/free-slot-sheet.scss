@@ -1,0 +1,18 @@
+@use '../cabinet' as c;
+
+.body {
+  @include c.stack;
+}
+
+.when {
+  font-weight: var(--font-weight-bold);
+}
+
+.note {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.footer:empty {
+  display: none;
+}

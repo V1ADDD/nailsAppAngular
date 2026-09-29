@@ -18,9 +18,9 @@ export const SERVICE_CATALOG: readonly ServiceCategory[] = [
         name: 'Покрытие гель-лаком',
         synonyms: ['шеллак', 'гель лак', 'гельлак', 'покрытие'],
       },
-      { id: 'manicure-design', categoryId: 'manicure', name: 'Дизайн ногтей' },
+      { id: 'manicure-design', categoryId: 'manicure', name: 'Дизайн ногтей', addon: true },
       { id: 'manicure-extension', categoryId: 'manicure', name: 'Наращивание ногтей' },
-      { id: 'manicure-removal', categoryId: 'manicure', name: 'Снятие покрытия' },
+      { id: 'manicure-removal', categoryId: 'manicure', name: 'Снятие покрытия', addon: true },
     ],
   },
   {

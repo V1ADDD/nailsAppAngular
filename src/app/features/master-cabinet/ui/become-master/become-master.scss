@@ -1,0 +1,65 @@
+@use 'styles/breakpoints' as bp;
+
+.onboarding {
+  display: grid;
+  gap: var(--space-5);
+  padding: var(--space-6) var(--space-4);
+  box-shadow: var(--shadow-sm);
+
+  @include bp.up(md) {
+    padding: var(--space-8);
+  }
+}
+
+.onboarding__hero {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  text-align: center;
+}
+
+.onboarding__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-16);
+  height: var(--space-16);
+  color: var(--color-primary-contrast);
+  background: var(--gradient-primary);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-primary);
+}
+
+.onboarding__title {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xl);
+}
+
+.onboarding__lead {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.benefits {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: var(--font-size-sm);
+  }
+
+  app-icon {
+    color: var(--color-primary);
+  }
+}
+
+.form {
+  display: grid;
+  gap: var(--space-4);
+}

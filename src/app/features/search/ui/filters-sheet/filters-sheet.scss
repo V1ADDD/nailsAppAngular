@@ -1,0 +1,64 @@
+:host {
+  display: contents;
+}
+
+.fs {
+  display: grid;
+  gap: var(--space-6);
+  padding-top: var(--space-2);
+}
+
+.fs__group {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.fs__legend {
+  padding: 0;
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.fs__range {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.fs__toggles {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.fs__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: var(--tap-target);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+
+  input {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+    accent-color: var(--color-primary);
+  }
+}
+
+.fs__footer {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.fs__apply {
+  flex: 1 1 12rem;
+}

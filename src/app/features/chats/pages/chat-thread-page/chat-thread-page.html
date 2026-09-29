@@ -1,0 +1,114 @@
+@if (store.loading()) {
+  <div class="skeleton-head" aria-hidden="true">
+    <span class="skeleton skeleton-head__avatar"></span>
+    <span class="skeleton skeleton-head__line"></span>
+  </div>
+  <div class="skeleton-flow" aria-busy="true" aria-label="Загрузка переписки">
+    <span class="skeleton skeleton-flow__bubble skeleton-flow__bubble--own"></span>
+    <span class="skeleton skeleton-flow__bubble"></span>
+    <span class="skeleton skeleton-flow__bubble skeleton-flow__bubble--own"></span>
+  </div>
+} @else if (store.error()) {
+  <div class="empty-state" role="alert">
+    <app-icon name="alert-triangle" [size]="32" />
+    <p class="empty-state__title">Не удалось открыть чат</p>
+    <p>{{ store.error() }}</p>
+    <div class="actions">
+      @if (otherRole(); as role) {
+        <button type="button" class="btn btn--primary" (click)="switchRole(role)">
+          Перейти в режим {{ roleLabel(role) }}
+        </button>
+      } @else {
+        <button type="button" class="btn btn--primary" (click)="store.reload()">Повторить</button>
+      }
+      <a class="btn btn--outline" routerLink="/chats">К списку чатов</a>
+    </div>
+  </div>
+} @else if (store.thread(); as thread) {
+  <app-thread-header
+    [counterpart]="thread.counterpart"
+    [role]="store.role()"
+    [blocked]="store.blocked()"
+    (blockRequested)="store.block()"
+    (unblocked)="store.unblock()"
+    (deleteRequested)="deleteOpen.set(true)"
+  />
+
+  <app-message-list
+    class="flow"
+    [messages]="store.messages()"
+    [bookings]="store.bookingsById()"
+    [chat]="thread.chat"
+    [role]="store.role()"
+    [busy]="store.busy()"
+    (confirmed)="store.confirm($event)"
+    (cancelled)="openCancel($event)"
+    (edited)="editing.set($event)"
+    (removed)="onRemove($event)"
+    (imageOpened)="openImage($event)"
+  />
+
+  @if (store.actionError(); as error) {
+    <div class="action-error" role="alert">
+      <app-icon name="alert-triangle" [size]="18" />
+      <span>{{ error }}</span>
+      <button type="button" class="btn btn--icon btn--ghost btn--sm" (click)="store.dismissError()">
+        <app-icon name="x" [size]="16" label="Скрыть ошибку" />
+      </button>
+    </div>
+  }
+
+  @if (store.blocked()) {
+    <div class="blocked" role="status">
+      <p class="blocked__text">
+        <app-icon name="ban" [size]="18" />
+        Чат заблокирован. Писать нельзя
+      </p>
+      <div class="actions">
+        <button
+          type="button"
+          class="btn btn--outline btn--sm"
+          [disabled]="store.busy()"
+          (click)="store.unblock()"
+        >
+          Разблокировать
+        </button>
+        <button
+          type="button"
+          class="btn btn--outline-danger btn--sm"
+          (click)="deleteOpen.set(true)"
+        >
+          Удалить чат
+        </button>
+      </div>
+    </div>
+  } @else {
+    <app-composer
+      [editing]="editing()"
+      [sending]="store.sending()"
+      (sent)="onSend($event)"
+      (editSaved)="onEditSaved($event)"
+      (editCancelled)="editing.set(null)"
+    />
+  }
+}
+
+<app-cancel-sheet
+  [(open)]="cancelOpen"
+  [busy]="store.busy()"
+  (submitted)="onCancelSubmit($event)"
+/>
+
+<app-sheet title="Удалить чат?" [(open)]="deleteOpen">
+  <p class="sheet-text">Переписка удалится вместе с историей. Это действие нельзя отменить.</p>
+  <div sheetFooter class="actions">
+    <button type="button" class="btn btn--outline" (click)="deleteOpen.set(false)">Назад</button>
+    <button type="button" class="btn btn--danger-soft" (click)="confirmDelete()">Удалить</button>
+  </div>
+</app-sheet>
+
+<app-sheet title="Фото" [(open)]="imageOpen">
+  @if (imageUrl(); as url) {
+    <img class="full-image" [src]="url" alt="Фото из чата в полном размере" />
+  }
+</app-sheet>

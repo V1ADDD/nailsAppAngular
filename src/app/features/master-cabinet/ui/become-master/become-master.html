@@ -1,0 +1,59 @@
+<section class="onboarding card" aria-labelledby="become-master-title">
+  <div class="onboarding__hero">
+    <span class="onboarding__icon" aria-hidden="true"
+      ><app-icon name="sparkles" [size]="28"
+    /></span>
+    <h2 id="become-master-title" class="onboarding__title">Станьте мастером</h2>
+    <p class="onboarding__lead">
+      Принимайте записи от клиентов рядом. Один аккаунт — два режима: вы остаётесь клиентом.
+    </p>
+  </div>
+
+  <ul class="benefits">
+    @for (benefit of benefits; track benefit.text) {
+      <li>
+        <app-icon [name]="benefit.icon" [size]="20" />
+        <span>{{ benefit.text }}</span>
+      </li>
+    }
+  </ul>
+
+  <form class="form" novalidate (ngSubmit)="submit()">
+    <label class="field">
+      <span class="field__label">Специализация</span>
+      <select class="input" name="category" [(ngModel)]="categoryId">
+        @for (category of catalog; track category.id) {
+          <option [value]="category.id">{{ category.specialty }} · {{ category.name }}</option>
+        }
+      </select>
+    </label>
+    <label class="field">
+      <span class="field__label">Город*</span>
+      <input
+        class="input"
+        name="city"
+        autocomplete="address-level2"
+        [(ngModel)]="city"
+        [attr.aria-invalid]="touched() && !city().trim()"
+      />
+    </label>
+    <label class="field">
+      <span class="field__label">Адрес, где принимаете*</span>
+      <input
+        class="input"
+        name="address"
+        autocomplete="street-address"
+        placeholder="ул. Ленина, 42"
+        [(ngModel)]="address"
+        [attr.aria-invalid]="touched() && !address().trim()"
+      />
+      <span class="field__hint">Точку на карте уточним по адресу</span>
+    </label>
+    @if (touched() && !valid()) {
+      <p class="field__error" role="alert">Укажите город и адрес</p>
+    }
+    <button type="submit" class="btn btn--gradient btn--lg btn--block" [disabled]="saving()">
+      {{ saving() ? 'Создаём кабинет…' : 'Стать мастером' }}
+    </button>
+  </form>
+</section>

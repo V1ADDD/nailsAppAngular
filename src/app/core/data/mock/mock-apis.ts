@@ -797,7 +797,12 @@ export class MockCabinetApi extends CabinetApi {
             };
           })
           // ТЗ 7.4: sorted by the nearest booking; clients without one go last.
-          .sort((a, b) => (a.nextBooking?.start ?? '~').localeCompare(b.nextBooking?.start ?? '~'))
+          .sort((a, b) => {
+            const x = a.nextBooking?.start;
+            const y = b.nextBooking?.start;
+            if (x && y) return x < y ? -1 : x > y ? 1 : 0;
+            return x ? -1 : y ? 1 : 0;
+          })
       );
     });
   }

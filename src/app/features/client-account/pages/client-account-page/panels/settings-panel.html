@@ -1,0 +1,89 @@
+@let client = session.client();
+
+<app-settings-group caption="Аккаунт">
+  <app-settings-row label="Редактировать профиль" (activate)="setOpen('profile', true)" />
+  <app-settings-row
+    label="Телефон"
+    [value]="client?.phone ?? ''"
+    (activate)="setOpen('phone', true)"
+  />
+  <app-settings-row
+    label="Способ связи"
+    [value]="contactLabel()"
+    (activate)="setOpen('contact', true)"
+  />
+</app-settings-group>
+
+<app-settings-group caption="Уведомления">
+  @for (row of notificationRows; track row.key) {
+    <app-switch-row
+      [label]="row.label"
+      [hint]="row.hint ?? ''"
+      [checked]="notifications()?.[row.key] ?? false"
+      [disabled]="!notifications()"
+      (toggled)="toggleNotification(row.key, $event)"
+    />
+  }
+</app-settings-group>
+
+<app-settings-group caption="Прочее">
+  <app-settings-row label="Язык" value="Русский" (activate)="openInfo('language')" />
+  <app-settings-row label="О приложении" (activate)="openInfo('about')" />
+  <app-settings-row label="Правила использования" (activate)="openInfo('rules')" />
+</app-settings-group>
+
+<div class="actions">
+  @if (session.isMaster()) {
+    <a class="btn btn--lg btn--block actions__cabinet" routerLink="/profile/master">
+      <app-icon name="briefcase" [size]="20" />
+      Перейти в кабинет мастера
+    </a>
+  } @else {
+    <button
+      type="button"
+      class="btn btn--lg btn--block btn--gradient"
+      (click)="setOpen('master', true)"
+    >
+      Стать мастером
+      <app-icon name="sparkles" [size]="20" />
+    </button>
+  }
+  <button type="button" class="btn btn--lg btn--block btn--danger-soft" (click)="logout()">
+    Выйти из аккаунта
+  </button>
+</div>
+
+<app-profile-sheet
+  [open]="isOpen('profile')"
+  (openChange)="setOpen('profile', $event)"
+  [client]="client"
+  [busy]="store.saving()"
+  (save)="saveProfile($event)"
+/>
+<app-phone-sheet
+  [open]="isOpen('phone')"
+  (openChange)="setOpen('phone', $event)"
+  [phone]="client?.phone ?? ''"
+  [busy]="store.saving()"
+  (save)="saveProfile({ phone: $event })"
+/>
+<app-contact-sheet
+  [open]="isOpen('contact')"
+  (openChange)="setOpen('contact', $event)"
+  [value]="client?.preferredContact ?? 'messages'"
+  [busy]="store.saving()"
+  (save)="saveProfile({ preferredContact: $event })"
+/>
+<app-info-sheet
+  [open]="isInfoOpen()"
+  (openChange)="setOpen(infoKind(), $event)"
+  [kind]="infoKind()"
+/>
+@if (!session.isMaster()) {
+  <app-become-master-sheet
+    [open]="isOpen('master')"
+    (openChange)="setOpen('master', $event)"
+    [busy]="store.saving()"
+    (submitted)="becomeMaster($event)"
+  />
+}

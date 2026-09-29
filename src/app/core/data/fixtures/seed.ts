@@ -47,6 +47,12 @@ export function minskTime(now: Date, dayOffset: number, hhmm: string): string {
   return new Date(utc).toISOString();
 }
 
+/** A booking start `hoursAhead` from now, rounded up to the next half hour. */
+function soon(now: Date, hoursAhead: number): string {
+  const step = 30 * MIN;
+  return new Date(Math.ceil((now.getTime() + hoursAhead * 3_600_000) / step) * step).toISOString();
+}
+
 /** ISO weekday (1 = Mon … 7 = Sun) of a Minsk day `dayOffset` days from `now`. */
 function minskWeekday(now: Date, dayOffset: number): number {
   const d = new Date(now.getTime() + MINSK_OFFSET_H * 3_600_000 + dayOffset * DAY).getUTCDay();
@@ -260,7 +266,7 @@ export function buildSeed(now: Date): MockDbState {
   }
 
   // ── Signed-in user as a CLIENT (design: chats, «Записи», «Отзывы») ───────────
-  const serova = chat('m-anna-serova', ME_CLIENT_ID, { client: ago(20) });
+  const serova = chat('m-anna-serova', ME_CLIENT_ID, { client: ago(15) });
   msg(serova, 'client', 22, 'Здравствуйте! Хочу записаться на маникюр');
   msg(serova, 'master', 17, 'Привет! Конечно, когда вам удобно?');
   msg(serova, 'client', 12, 'Завтра с утра есть свободное время?');
@@ -417,7 +423,8 @@ export function buildSeed(now: Date): MockDbState {
     masterId: me,
     clientId: 'c-alina',
     subcategoryId: 'manicure-hardware',
-    start: minskTime(now, 0, '09:00'),
+    // Today's schedule is relative to now, so the cabinet looks alive at any hour.
+    start: soon(now, 1),
     status: 'confirmed',
     chatId: alinaChat.id,
   });
@@ -429,7 +436,7 @@ export function buildSeed(now: Date): MockDbState {
     masterId: me,
     clientId: 'c-viktoria',
     subcategoryId: 'manicure-gel',
-    start: minskTime(now, 0, '12:00'),
+    start: soon(now, 2.5),
     status: 'pending',
     createdBy: 'client', // the master has to confirm
     createdMinutesAgo: 40,
@@ -450,7 +457,7 @@ export function buildSeed(now: Date): MockDbState {
     clientId: null,
     externalClientName: 'Ирина (Instagram)',
     subcategoryId: 'manicure-gel',
-    start: minskTime(now, 0, '15:00'),
+    start: soon(now, 4),
     status: 'confirmed',
     source: 'external', // ТЗ 6.8 «не с сайта»
     createdBy: 'master',

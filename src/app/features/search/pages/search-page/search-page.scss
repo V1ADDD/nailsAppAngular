@@ -1,0 +1,142 @@
+@use 'styles/breakpoints' as bp;
+
+// Grid areas overlap on purpose: map, support tab and the list panel share «map».
+:host {
+  display: grid;
+  grid-template:
+    'top' auto
+    'map' minmax(0, 1fr) / minmax(0, 1fr);
+  height: calc(100dvh - var(--bottom-nav-height) - env(safe-area-inset-bottom));
+  overflow: hidden;
+
+  @include bp.up(lg) {
+    grid-template:
+      'top map' auto
+      'panel map' minmax(0, 1fr) / minmax(22rem, 27rem) minmax(0, 1fr);
+    height: calc(100dvh - var(--header-height));
+  }
+}
+
+.top {
+  position: relative;
+  z-index: var(--z-sheet);
+  display: grid;
+  grid-area: top;
+  gap: var(--space-3);
+  padding: var(--space-4) 0 var(--space-3);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+
+  @include bp.up(lg) {
+    border-right: 1px solid var(--color-border);
+  }
+}
+
+.top__search {
+  padding: 0 var(--space-4);
+
+  @include bp.up(md) {
+    width: 100%;
+    max-width: 40rem;
+  }
+}
+
+.map {
+  grid-area: map;
+  isolation: isolate;
+}
+
+.support-tab {
+  z-index: 1;
+  display: flex;
+  grid-area: map;
+  align-items: center;
+  align-self: start;
+  justify-self: end;
+  gap: var(--space-2);
+  margin: calc(var(--space-16) * 2) var(--space-2) 0 0;
+  padding: var(--space-4) var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-md);
+  writing-mode: vertical-rl;
+
+  // From md the map controls move to the top-right; keep the tab clear of them.
+  @include bp.up(md) {
+    align-self: center;
+    margin-top: 0;
+  }
+
+  // The desktop top bar has its own «Напишите нам».
+  @include bp.up(lg) {
+    display: none;
+  }
+}
+
+.panel {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  grid-area: map;
+  flex-direction: column;
+  align-self: end;
+  width: 100%;
+  min-width: 0;
+  max-height: 100%;
+  min-height: 0;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  box-shadow: var(--shadow-lg);
+
+  &--expanded {
+    height: 88%;
+  }
+
+  @include bp.up(md) {
+    align-self: stretch;
+    justify-self: start;
+    width: 22.5rem;
+    height: auto;
+    margin: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+  }
+
+  @include bp.up(lg) {
+    grid-area: panel;
+    justify-self: stretch;
+    width: auto;
+    margin: 0;
+    border-width: 0 1px 0 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+.panel__list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.login-fab {
+  position: absolute;
+  right: var(--space-4);
+  bottom: calc(100% + var(--space-3));
+  box-shadow: var(--shadow-primary);
+
+  @include bp.up(md) {
+    position: fixed;
+    bottom: calc(var(--bottom-nav-height) + var(--space-4));
+  }
+
+  @include bp.up(lg) {
+    display: none;
+  }
+}

@@ -1,0 +1,112 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.row {
+  --row-bg: var(--color-surface);
+  --row-border: var(--color-border);
+  --row-tag: var(--color-text-secondary);
+
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 4.25rem;
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  background: var(--row-bg);
+  border: 1px solid var(--row-border);
+  border-radius: var(--radius-md);
+  transition: transform var(--transition-fast);
+
+  &:active {
+    transform: scale(0.99);
+  }
+
+  &--free {
+    --row-bg: var(--color-surface);
+    --row-border: var(--color-border-strong);
+
+    border-style: dashed;
+  }
+
+  &--pending {
+    --row-bg: var(--color-warning-soft);
+    --row-border: var(--color-warning-border);
+    --row-tag: var(--color-text);
+  }
+
+  &--booked {
+    --row-bg: var(--color-success-soft);
+    --row-border: var(--color-success-border);
+    --row-tag: var(--color-success-text);
+  }
+
+  &--busy {
+    --row-bg: var(--color-primary-soft);
+    --row-border: var(--color-primary-soft);
+    --row-tag: var(--color-primary);
+  }
+
+  &--completed {
+    --row-bg: var(--color-surface-muted);
+    --row-border: transparent;
+  }
+
+  &--no-show {
+    --row-bg: var(--color-danger-soft);
+    --row-border: var(--color-danger-border);
+    --row-tag: var(--color-danger);
+  }
+
+  &--compact {
+    justify-content: center;
+    min-height: 2.25rem;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+  }
+}
+
+.row__time {
+  flex-shrink: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+
+  .row--compact & {
+    font-size: var(--font-size-sm);
+  }
+}
+
+.row__main {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.row__name {
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+
+  .row--free & {
+    color: var(--color-text-secondary);
+  }
+}
+
+.row__service {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.row__tag {
+  flex-shrink: 1;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-align: center;
+  color: var(--row-tag);
+  background: var(--color-surface);
+  border: 1px solid var(--row-border);
+  border-radius: var(--radius-full);
+}

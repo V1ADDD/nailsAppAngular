@@ -1,0 +1,76 @@
+@use 'styles/breakpoints' as bp;
+
+:host {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: var(--color-map-land);
+}
+
+.map {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+// Design 01: «+» top-left. From md the list panel covers the left side, so move right.
+.controls {
+  position: absolute;
+  top: var(--space-4);
+  left: var(--space-4);
+  z-index: var(--z-map-controls);
+  display: grid;
+  gap: var(--space-2);
+
+  @include bp.up(md) {
+    right: var(--space-4);
+    left: auto;
+  }
+}
+
+.controls__group,
+.controls__btn--single {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.controls__group {
+  display: grid;
+  overflow: hidden;
+}
+
+.controls__divider {
+  height: 1px;
+  margin: 0 var(--space-2);
+  background: var(--color-border);
+}
+
+.controls__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-target);
+  height: var(--tap-target);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: none;
+
+  &:hover:not(:disabled) {
+    color: var(--color-primary);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    color: var(--color-text-muted);
+  }
+
+  &:focus-visible {
+    outline-offset: -2px;
+  }
+
+  &--single {
+    color: var(--color-primary);
+  }
+}

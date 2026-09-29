@@ -1,0 +1,88 @@
+@let m = master();
+<article class="mc" [class.mc--active]="active()" [attr.aria-label]="m.name">
+  <div class="mc__head">
+    <app-avatar
+      [name]="m.name"
+      [src]="m.photoUrl"
+      [size]="64"
+      shape="rounded"
+      [online]="m.online"
+    />
+    <div class="mc__info">
+      <h3 class="mc__name">
+        <a class="mc__link" [routerLink]="['/masters', m.id]">{{ m.name }}</a>
+        @if (m.verification === 'verified') {
+          <app-icon
+            class="mc__verified"
+            name="badge-check"
+            [size]="16"
+            label="Проверенный мастер"
+          />
+        }
+      </h3>
+      <p class="mc__specialty">{{ m.specialty }}</p>
+      <p class="mc__meta">
+        <app-rating [value]="m.rating" [count]="m.reviewsCount" [showValue]="true" [size]="12" />
+      </p>
+      <p class="mc__meta">
+        <span>{{ experience() }}</span>
+        <span aria-hidden="true">·</span>
+        <span><span class="visually-hidden">Расстояние: </span>{{ distance() }}</span>
+        @if (m.online) {
+          <span class="mc__online"><span class="dot dot--success"></span>онлайн</span>
+        }
+      </p>
+    </div>
+    <button
+      type="button"
+      class="btn btn--icon btn--ghost mc__fav"
+      [class.mc__fav--on]="favorite()"
+      [attr.aria-pressed]="favorite()"
+      [attr.aria-label]="favorite() ? 'Убрать из избранного' : 'Добавить в избранное'"
+      (click)="favoriteToggle.emit()"
+    >
+      <app-icon name="heart" [size]="20" [filled]="favorite()" />
+    </button>
+  </div>
+
+  @if (services().length > 1) {
+    <button
+      type="button"
+      class="mc__group"
+      [attr.aria-expanded]="expanded()"
+      [attr.aria-controls]="servicesId"
+      (click)="expanded.set(!expanded())"
+    >
+      <span class="mc__group-name">{{ groupLabel() }}</span>
+      <span class="mc__price">{{ result().minPrice | price }}</span>
+      <app-icon [name]="expanded() ? 'chevron-up' : 'chevron-down'" [size]="16" />
+    </button>
+    @if (expanded()) {
+      <ul class="mc__services" [id]="servicesId">
+        @for (s of services(); track s.id) {
+          <li class="mc__service">
+            <span>{{ s.name }}</span>
+            <span class="mc__service-price">{{ s.price | price }}</span>
+          </li>
+        }
+      </ul>
+    }
+  } @else if (services().length === 1) {
+    <p class="mc__group mc__group--static">
+      <span class="mc__group-name">{{ groupLabel() }}</span>
+      <span class="mc__price">{{ result().minPrice | price }}</span>
+    </p>
+  }
+
+  @if (!own()) {
+    <div class="mc__actions">
+      <button type="button" class="btn btn--primary btn--sm" (click)="onBook()">Записаться</button>
+      <button type="button" class="btn btn--outline btn--sm" (click)="write.emit()">
+        <app-icon name="message-square" [size]="16" />
+        Написать
+      </button>
+    </div>
+  } @else {
+    <p class="mc__own">Это ваш профиль</p>
+  }
+</article>

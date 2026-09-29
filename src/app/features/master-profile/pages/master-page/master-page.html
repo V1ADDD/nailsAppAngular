@@ -1,0 +1,97 @@
+<div class="page">
+  <nav class="page__nav" aria-label="Навигация">
+    <button type="button" class="btn btn--outline btn--sm btn--pill" (click)="back()">
+      <app-icon name="arrow-left" [size]="18" />
+      Назад
+    </button>
+  </nav>
+
+  @if (store.loading()) {
+    <app-profile-skeleton />
+  } @else if (store.error() || !store.master()) {
+    <section class="empty-state not-found" role="alert">
+      <app-icon name="search" [size]="40" />
+      <h1 class="display-title">Мастер не найден</h1>
+      <p>Возможно, ссылка устарела или мастер удалил профиль.</p>
+      <a routerLink="/" class="btn btn--primary">Найти мастера на карте</a>
+    </section>
+  } @else {
+    @let m = store.master()!;
+    <div class="layout">
+      <aside class="side" aria-label="О мастере">
+        <app-profile-hero
+          class="o-hero"
+          [master]="m"
+          [distance]="distance()"
+          [favorite]="favorite()"
+          [own]="own()"
+          [messaging]="store.openingChat()"
+          (book)="startBooking()"
+          (write)="message()"
+          (toggleFavorite)="toggleFavorite()"
+        />
+        <app-free-slots
+          class="o-slots"
+          [days]="store.nearestFree()"
+          [bookable]="!own()"
+          (pick)="startBooking(null, $event)"
+          (more)="startBooking()"
+        />
+        <app-contacts-card class="o-contacts" [contacts]="m.contacts" />
+      </aside>
+
+      <div class="main">
+        <app-service-list
+          class="o-services"
+          [groups]="store.serviceGroups()"
+          [bookable]="!own()"
+          (book)="startBooking($event)"
+        />
+        @if (m.portfolio.length) {
+          <app-portfolio-gallery class="o-portfolio" [photos]="m.portfolio" [masterName]="m.name" />
+        }
+        <app-profile-about class="o-about" [about]="m.about" [courses]="m.courses" />
+        <app-review-list
+          id="reviews"
+          class="o-reviews"
+          [reviews]="store.reviews()"
+          [average]="store.averageRating()"
+          [loading]="store.reviewsLoading()"
+          [error]="store.reviewsError()"
+          (retry)="store.loadReviews(m.id)"
+        />
+      </div>
+    </div>
+
+    @if (!own()) {
+      <div class="action-bar">
+        @if (store.fromPrice(); as price) {
+          <span class="action-bar__price">{{ price | price }}</span>
+        }
+        <button
+          type="button"
+          class="btn btn--gradient btn--lg action-bar__cta"
+          (click)="startBooking()"
+        >
+          Записаться
+        </button>
+      </div>
+
+      <app-booking-sheet
+        [master]="m"
+        [wizard]="store.booking()"
+        [days]="store.dayOptions()"
+        [daySlots]="store.daySlots()"
+        [service]="store.selectedService()"
+        [slot]="store.selectedSlot()"
+        [releaseAt]="store.releaseAt()"
+        [canSubmit]="store.canSubmit()"
+        (closed)="store.closeBooking()"
+        (serviceChange)="store.selectService($event)"
+        (dayChange)="store.selectDay($event)"
+        (slotChange)="store.selectSlot($event)"
+        (submitted)="confirmBooking()"
+      />
+    }
+  }
+</div>

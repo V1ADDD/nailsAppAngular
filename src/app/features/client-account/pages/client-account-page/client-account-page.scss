@@ -1,0 +1,63 @@
+@use 'styles/breakpoints' as bp;
+
+:host {
+  display: block;
+  padding-bottom: var(--space-8);
+}
+
+.account {
+  display: grid;
+
+  @include bp.up(md) {
+    gap: var(--space-4);
+    max-width: 45rem;
+    margin: 0 auto;
+    padding: var(--space-6) var(--space-4) 0;
+  }
+
+  @include bp.up(lg) {
+    grid-template-columns: 20rem minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-6);
+    max-width: var(--content-max-width);
+    padding: var(--space-3) var(--space-6) 0;
+  }
+}
+
+.account__side {
+  display: grid;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+
+  @include bp.up(md) {
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+  }
+
+  @include bp.up(lg) {
+    position: sticky;
+    top: calc(var(--header-height) + var(--space-4));
+  }
+}
+
+.account__header {
+  padding: var(--space-5) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+
+  @include bp.up(md) {
+    padding: var(--space-5);
+  }
+}
+
+.account__nav {
+  padding: var(--space-3) var(--space-4);
+
+  @include bp.up(lg) {
+    padding: var(--space-3);
+  }
+}
+
+.account__content {
+  min-width: 0;
+}

@@ -1,0 +1,33 @@
+<div #map class="map" role="region" aria-label="Карта мастеров"></div>
+
+<div class="controls">
+  <div class="controls__group">
+    <button
+      type="button"
+      class="controls__btn"
+      aria-label="Приблизить"
+      [disabled]="zoom() >= maxZoom"
+      (click)="zoomIn()"
+    >
+      <app-icon name="plus" [size]="20" />
+    </button>
+    <span class="controls__divider" aria-hidden="true"></span>
+    <button
+      type="button"
+      class="controls__btn"
+      aria-label="Отдалить"
+      [disabled]="zoom() <= minZoom"
+      (click)="zoomOut()"
+    >
+      <app-icon name="minus" [size]="20" />
+    </button>
+  </div>
+  <button
+    type="button"
+    class="controls__btn controls__btn--single"
+    aria-label="Моё местоположение"
+    (click)="locate()"
+  >
+    <app-icon name="locate" [size]="20" />
+  </button>
+</div>

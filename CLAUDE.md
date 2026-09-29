@@ -70,8 +70,23 @@ Use the `/new-feature` skill for templates.
 - **Roles**: one account, two roles (client / master), switched in /profile by button or swipe. Chats are separate per role. Admin is out of scope for the mock.
 - **Catalog**: category → subcategory (`catalog.ts`). A master's service = subcategory + price + duration. Price kinds: exact, «от», free — never ranges or «по договорённости».
 - **Slots**: master sees free / booked (site) / busy (external, «не с сайта») / pending; client sees free / busy / pending (`slotStatusFor`).
-- **Booking flow**: book a free slot → pending + chat created with a booking card → the *opposite* side confirms in the chat. Unconfirmed → slot released 24 h / 2 h before (`pendingReleaseAt`). Cancel needs a reason. «Перенести» = cancel + new booking (MVP). Overlapping bookings of one client auto-cancel the older one; same-day bookings < 60 min apart show a warning.
+- **Booking flow**: book a free slot → pending + chat created with a booking card → the _opposite_ side confirms in the chat. Unconfirmed → slot released 24 h / 2 h before (`pendingReleaseAt`). Cancel needs a reason. «Перенести» = cancel + new booking (MVP). Overlapping bookings of one client auto-cancel the older one; same-day bookings < 60 min apart show a warning.
 - **Map**: Leaflet + OSM/CARTO tiles, own pixel-grid clustering, pins show price («от 30 р»). Default sort: nearest.
+
+## Features (what exists)
+
+| Route                                                                          | Folder                                                             | What it is                                                                                                                                                                                                                                                         |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/`                                                                            | `features/search`                                                  | Map home: Leaflet map (OSM tiles, own clustering in `ui/search-map/cluster.ts`), search (`matchMaster`), all ТЗ 5.2 filters, 5.3 sorting, bottom sheet / side panel list. Store is root-provided so filters survive navigation; `q`/`service` mirrored in the URL. |
+| `/masters/:id` (`?book=1&service=`)                                            | `features/master-profile`                                          | Full public profile (services, portfolio lightbox, about, courses, contacts, reviews, nearest slots) + booking sheet (service → day → slot → conflict warnings → create → chat).                                                                                   |
+| `/chats`, `/chats/:chatId`                                                     | `features/chats`                                                   | List per active role (+ «Как клиент / Как мастер» switch), thread with booking cards (confirm by the opposite side, cancel with reason), photos, edit/delete, block/delete chat. Two panes from md.                                                                |
+| `/profile` → `/profile/client` (`?tab=bookings\|favorites\|reviews\|settings`) | `features/profile` (role switch shell) + `features/client-account` | Records (upcoming/past, confirm, cancel, «Перенести» = cancel + rebook), favorites, reviews (mine / about me), settings (notifications: push, email, site, reminders), «Стать мастером».                                                                           |
+| `/profile/master`                                                              | `features/master-cabinet`                                          | Accordion cabinet: card + completeness, schedule day/week/month (swipe) with template generator and external bookings, clients, services & prices with market hint, portfolio (≤ 9), stats with revenue donut, verification.                                       |
+| `/login`                                                                       | `features/auth`                                                    | Mock sign-in into the demo account (Анна Новикова — client and master).                                                                                                                                                                                            |
+
+## Visual check
+
+`npm run build -- --configuration development` then `node scripts/screenshots.mjs [--only=map,chat] [--viewport=phone|tablet|desktop]` — drives the installed Edge headlessly (no extra deps), signs in via localStorage and writes `screenshots/<viewport>-<name>.png`. Compare phone shots with `design/*.png` after UI changes. (Pass shot names to `--only`, not `/paths` — Git Bash mangles leading slashes.)
 
 ## Angular conventions (lint-enforced where possible)
 
@@ -85,7 +100,7 @@ Use the `/new-feature` skill for templates.
 
 ## Styling
 
-- **Only design tokens**: `var(--color-…)`, `var(--space-…)`, `var(--radius-…)`, and so on. There should be no raw hex or px values in components (1px hairlines are fine). Tokens in [_tokens.scss](src/styles/_tokens.scss) are **placeholders until synced from Figma**.
+- **Only design tokens**: `var(--color-…)`, `var(--space-…)`, `var(--radius-…)`, and so on. There should be no raw hex or px values in components (1px hairlines are fine). Tokens live in [_tokens.scss](src/styles/_tokens.scss) (sampled from the design); global control classes in `_controls.scss` — reuse them before writing new button/chip/card styles.
 - Mobile-first: `@use 'styles/breakpoints' as bp;` then `@include bp.up(md) { … }`.
 - Styles are component-scoped; no `::ng-deep`. The component style budget is 4kB warning / 8kB error.
 - Accessibility: semantic elements, labelled controls, `alt` text, visible focus, AA contrast.
@@ -99,7 +114,7 @@ Use the `/new-feature` skill for templates.
 
 ## Figma
 
-The design comes from Figma. Use the `/figma-to-code <url>` skill. If Figma MCP tools aren't available, ask the user to connect the Figma connector or send screenshots. Don't invent layouts. Sync Figma variables into `_tokens.scss` before building screens.
+The design is a **Figma Make** file (mobile only). The connected Figma account has a View seat on a Starter plan: the MCP can't read the Make file (needs edit access) and is capped at ~20 calls/month, so the working reference is the screenshots in `design/`. For new screens ask the user for screenshots (or a Make code export), use the `/figma-to-code` skill, and don't invent layouts for designed screens. Tablet/desktop layouts are ours — keep them consistent with the existing ones. Tokens in `_tokens.scss` were sampled from the screenshots.
 
 ## Agents & automation
 
