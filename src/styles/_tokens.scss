@@ -1,0 +1,46 @@
+// Design tokens: the single source of truth for colors, spacing, type, radii, shadows.
+// PLACEHOLDER values: replace with the tokens from the Figma design.
+// Components must use these variables, never raw hex/px values.
+:root {
+  // Color
+  --color-bg: #fdfbfa;
+  --color-surface: #ffffff;
+  --color-text: #1f1a1c;
+  --color-text-muted: #6b6266;
+  --color-primary: #c2185b;
+  --color-primary-contrast: #ffffff;
+  --color-border: #e8e1e4;
+  --color-danger: #c62828;
+  --color-success: #2e7d32;
+
+  // Spacing (4px scale)
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+
+  // Typography
+  --font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.75rem;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+  --line-height: 1.5;
+
+  // Shape & depth
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 6%);
+  --shadow-md: 0 4px 12px rgb(0 0 0 / 8%);
+
+  // Motion
+  --transition-fast: 120ms ease;
+}
