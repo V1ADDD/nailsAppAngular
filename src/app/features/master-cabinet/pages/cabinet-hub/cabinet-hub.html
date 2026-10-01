@@ -1,0 +1,70 @@
+<section class="hero" aria-labelledby="hub-greeting">
+  <span class="hero__glow hero__glow--one" aria-hidden="true"></span>
+  <span class="hero__glow hero__glow--two" aria-hidden="true"></span>
+  <p class="hero__date">{{ now | date: 'EEEE, d MMMM' }}</p>
+  <h2 class="hero__greeting" id="hub-greeting">{{ greeting() }}</h2>
+
+  @if (store.loading().schedule && !store.slots().length) {
+    <div class="hero__skeleton" aria-busy="true" aria-label="Загружаем расписание"></div>
+  } @else if (store.errors().schedule) {
+    <div class="hero__error" role="alert">
+      <p>Не удалось загрузить расписание</p>
+      <button type="button" class="btn btn--sm hero__cta" (click)="store.retry('schedule')">
+        Повторить
+      </button>
+    </div>
+  } @else {
+    <p class="hero__today">
+      <strong>{{ todayText() }}</strong>
+      <span>сегодня</span>
+    </p>
+    @if (store.today().next; as next) {
+      <p class="hero__next">
+        <app-icon name="clock" [size]="16" />
+        Ближайшая в {{ next.start | date: 'HH:mm' }} — {{ next.booking?.clientName }},
+        {{ next.booking?.serviceName }}
+      </p>
+    }
+    @if (freeText()) {
+      <p class="hero__free">{{ freeText() }}</p>
+    }
+  }
+
+  <div class="hero__actions">
+    <a class="btn btn--sm hero__cta" routerLink="schedule">
+      <app-icon name="calendar" [size]="16" /> Открыть расписание
+    </a>
+    @if (pendingText()) {
+      <a class="hero__pending" routerLink="schedule">
+        <span class="hero__pulse" aria-hidden="true"></span>
+        {{ pendingText() }}
+      </a>
+    }
+  </div>
+</section>
+
+<h2 class="visually-hidden">Разделы кабинета</h2>
+<ul class="tiles">
+  @for (tile of tiles(); track tile.path; let i = $index) {
+    <li class="tiles__item" [style.--i]="i">
+      <a class="tile" [routerLink]="tile.path">
+        <span class="tile__icon" [class]="'tint--' + tile.tint" aria-hidden="true">
+          <app-icon [name]="tile.icon" [size]="22" />
+          @if (tile.alert) {
+            <span class="tile__alert"></span>
+          }
+        </span>
+        <span class="tile__text">
+          <span class="tile__title">{{ tile.title }}</span>
+          <span class="tile__metric">{{ tile.metric }}</span>
+          @if (tile.progress !== undefined) {
+            <span class="tile__progress" aria-hidden="true">
+              <span [style.width.%]="tile.progress"></span>
+            </span>
+          }
+        </span>
+        <app-icon class="tile__arrow" name="chevron-right" [size]="18" />
+      </a>
+    </li>
+  }
+</ul>

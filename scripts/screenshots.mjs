@@ -42,11 +42,14 @@ const SHOTS = [
   { name: 'booking', path: '/masters/m-anna-serova?book=1', auth: true },
   { name: 'chats', path: '/chats', auth: true },
   { name: 'chat-thread', path: '/chats/chat-m-anna-serova-c-me', auth: true },
-  { name: 'client-bookings', path: '/profile/client?tab=bookings', auth: true },
-  { name: 'client-favorites', path: '/profile/client?tab=favorites', auth: true },
-  { name: 'client-reviews', path: '/profile/client?tab=reviews', auth: true },
-  { name: 'client-settings', path: '/profile/client?tab=settings', auth: true },
+  { name: 'client-bookings', path: '/profile/client/bookings', auth: true },
+  { name: 'client-favorites', path: '/profile/client/favorites', auth: true },
+  { name: 'client-reviews', path: '/profile/client/reviews', auth: true },
+  { name: 'client-settings', path: '/profile/client/settings', auth: true },
   { name: 'master-cabinet', path: '/profile/master', auth: true, role: 'master' },
+  { name: 'cabinet-schedule', path: '/profile/master/schedule', auth: true, role: 'master' },
+  { name: 'cabinet-settings', path: '/profile/master/settings', auth: true, role: 'master' },
+  { name: 'cabinet-stats', path: '/profile/master/stats', auth: true, role: 'master' },
   { name: 'login', path: '/login', auth: false },
 ];
 

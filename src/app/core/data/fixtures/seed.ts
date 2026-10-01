@@ -13,6 +13,7 @@ import {
   type Role,
   type Slot,
 } from '../models';
+import { templateTimes } from '../rules';
 import { MASTERS } from './masters.fixtures';
 
 export interface MockDbState {
@@ -124,13 +125,11 @@ export function buildSeed(now: Date): MockDbState {
   // ── Slots from each master's template for the next 14 days (ТЗ 6.1) ─────────
   masters.forEach((m, mi) => {
     const rand = mulberry32(mi + 1);
-    const { from, to, slotMinutes, workDays } = m.schedule;
-    const [fh, fm] = from.split(':').map(Number) as [number, number];
-    const [th, tm] = to.split(':').map(Number) as [number, number];
+    const { slotMinutes, workDays } = m.schedule;
+    const times = templateTimes(m.schedule);
     for (let day = 0; day < 14; day++) {
       if (!workDays.includes(minskWeekday(now, day))) continue;
-      for (let t = fh * 60 + fm; t + slotMinutes <= th * 60 + tm; t += slotMinutes) {
-        const hhmm = `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
+      for (const hhmm of times) {
         const start = minskTime(now, day, hhmm);
         if (new Date(start) <= now) continue;
         const r = rand();

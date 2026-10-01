@@ -200,6 +200,15 @@ export interface CabinetClient {
 
 export type StatsPeriod = 'day' | 'week' | 'month';
 
+export interface ExpectedLine {
+  subcategoryId: string;
+  serviceName: string;
+  count: number;
+  /** Current price of the service in BYN («от» counts as its minimum). */
+  price: number;
+  total: number;
+}
+
 export interface CabinetStats {
   period: StatsPeriod;
   completed: number;
@@ -208,8 +217,10 @@ export interface CabinetStats {
   upcoming: number;
   /** Approximate revenue from completed bookings (ТЗ 7.3 «кольцо выручки»). */
   revenue: number;
-  /** Expected revenue from confirmed upcoming bookings in the period. */
+  /** Expected revenue of upcoming bookings in the period: Σ bookings × service price. */
   expectedRevenue: number;
+  /** The forecast per service, biggest first («3 × 30 р = 90 р»). */
+  expectedByService: ExpectedLine[];
 }
 
 export interface ServiceProposal {

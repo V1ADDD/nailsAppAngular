@@ -1,0 +1,154 @@
+<app-cabinet-section sectionId="schedule" title="Расписание" icon="calendar">
+  <ng-container actions>
+    <a class="btn btn--ghost btn--sm" routerLink="../settings">
+      <app-icon name="sliders-horizontal" [size]="16" /> Рабочий график
+    </a>
+    <button type="button" class="btn btn--outline btn--sm" (click)="addOpen.set(true)">
+      <app-icon name="plus" [size]="16" /> Окно
+    </button>
+  </ng-container>
+
+  <div class="schedule">
+    <div class="schedule__bar">
+      <app-tabs
+        label="Период расписания"
+        [tabs]="tabs"
+        [value]="store.schedulePeriod()"
+        (valueChange)="store.setSchedulePeriod($event)"
+      />
+      <div class="schedule__nav">
+        <button
+          type="button"
+          class="btn btn--icon btn--ghost"
+          aria-label="Предыдущий период"
+          (click)="store.shiftSchedule(-1)"
+        >
+          <app-icon name="chevron-left" [size]="20" />
+        </button>
+        <h3 class="schedule__caption" aria-live="polite">{{ caption() }}</h3>
+        <button
+          type="button"
+          class="btn btn--icon btn--ghost"
+          aria-label="Следующий период"
+          (click)="store.shiftSchedule(1)"
+        >
+          <app-icon name="chevron-right" [size]="20" />
+        </button>
+        <button
+          type="button"
+          class="btn btn--outline btn--sm"
+          [disabled]="store.scheduleDate() === store.todayKey()"
+          (click)="store.setScheduleDate(store.todayKey())"
+        >
+          Сегодня
+        </button>
+      </div>
+    </div>
+
+    @if (dayStats(); as s) {
+      <p class="schedule__summary">
+        <span class="pill pill--booked">{{ s.bookings }}</span>
+        @if (s.pending) {
+          <span class="pill pill--pending">{{ s.pending }}</span>
+        }
+        @if (s.free) {
+          <span class="pill">{{ s.free }}</span>
+        }
+      </p>
+    }
+
+    <!-- Stop the profile shell's own «Клиент | Мастер» swipe from reacting to this area. -->
+    <div
+      class="schedule__area"
+      appSwipe
+      (swipeLeft)="swipe(1)"
+      (swipeRight)="swipe(-1)"
+      (pointerdown)="$event.stopPropagation()"
+      (pointerup)="$event.stopPropagation()"
+    >
+      @if (store.loading().schedule && !store.slots().length) {
+        <div class="schedule__skeleton" aria-busy="true" aria-label="Загружаем расписание">
+          @for (i of skeletonRows; track i) {
+            <div class="skeleton schedule__skeleton-row"></div>
+          }
+        </div>
+      } @else if (store.errors().schedule; as error) {
+        <div class="empty-state" role="alert">
+          <p class="empty-state__title">Не удалось загрузить расписание</p>
+          <p>{{ error }}</p>
+          <button type="button" class="btn btn--outline btn--sm" (click)="store.retry('schedule')">
+            Повторить
+          </button>
+        </div>
+      } @else {
+        @switch (store.schedulePeriod()) {
+          @case ('day') {
+            @if (wide()) {
+              <app-schedule-grid
+                [days]="[store.dayView()]"
+                [bounds]="dayBounds()"
+                [todayKey]="store.todayKey()"
+                (pick)="open($event)"
+                (openDay)="store.openDay($event)"
+              />
+            } @else {
+              <app-schedule-agenda [rows]="store.dayView().rows" (pick)="open($event)" />
+            }
+          }
+          @case ('week') {
+            @if (wide()) {
+              <app-schedule-grid
+                [days]="store.weekView()"
+                [bounds]="weekBounds()"
+                [todayKey]="store.todayKey()"
+                (pick)="open($event)"
+                (openDay)="store.openDay($event)"
+              />
+            } @else {
+              <app-schedule-week
+                [days]="store.weekView()"
+                [todayKey]="store.todayKey()"
+                (pick)="open($event)"
+                (openDay)="store.openDay($event)"
+              />
+            }
+          }
+          @case ('month') {
+            <app-schedule-month [weeks]="store.monthView()" (openDay)="store.openDay($event)" />
+          }
+        }
+      }
+    </div>
+  </div>
+</app-cabinet-section>
+
+<app-booking-sheet
+  [(open)]="bookingOpen"
+  [row]="selected()"
+  [saving]="store.saving()"
+  (confirm)="confirm($event)"
+  (cancelBooking)="cancel($event)"
+  (noShow)="noShow($event)"
+  (saveNote)="saveNote($event)"
+  (write)="message($event)"
+/>
+
+<app-free-slot-sheet
+  [(open)]="freeOpen"
+  [row]="selected()"
+  [services]="store.master()?.services ?? []"
+  [clients]="store.clients()"
+  [saving]="store.saving()"
+  (addExternal)="addExternal($event)"
+  (bookForClient)="bookForClient($event)"
+  (move)="moveSlot($event)"
+  (remove)="removeSlot($event)"
+/>
+
+<app-add-slot-sheet
+  [(open)]="addOpen"
+  [date]="store.scheduleDate()"
+  [defaultDuration]="store.master()?.schedule?.slotMinutes ?? 60"
+  [saving]="store.saving()"
+  (addSlot)="addSlot($event)"
+/>

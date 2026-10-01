@@ -48,7 +48,14 @@ function master(partial: Partial<Master> & { id: string }): Master {
     ],
     portfolio: [],
     bookingsCount: 0,
-    schedule: { workDays: [1], from: '10:00', to: '19:00', slotMinutes: 60 },
+    schedule: {
+      workDays: [1],
+      from: '10:00',
+      to: '19:00',
+      slotMinutes: 60,
+      breaks: [],
+      capacity: 1,
+    },
     autoConfirm: { enabled: false, afterMinutes: 30 },
     ...partial,
   };

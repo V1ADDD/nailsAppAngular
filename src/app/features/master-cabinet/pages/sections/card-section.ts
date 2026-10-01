@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { CabinetStore, type ProfilePatch } from '../../../state/cabinet.store';
-import { CabinetSection } from '../../../ui/cabinet-section/cabinet-section';
-import { CompletenessMeter } from '../../../ui/completeness-meter/completeness-meter';
-import { MasterPreview } from '../../../ui/master-preview/master-preview';
-import { ProfileForm } from '../../../ui/profile-form/profile-form';
+import { CabinetStore, type ProfilePatch } from '../../state/cabinet.store';
+import { CabinetSection } from '../../ui/cabinet-section/cabinet-section';
+import { CompletenessMeter } from '../../ui/completeness-meter/completeness-meter';
+import { MasterPreview } from '../../ui/master-preview/master-preview';
+import { ProfileForm } from '../../ui/profile-form/profile-form';
 import { injectCabinetFeedback } from './cabinet-feedback';
 
 /** 1. «Моя карточка» (ТЗ 4.1). */
@@ -12,14 +12,7 @@ import { injectCabinetFeedback } from './cabinet-feedback';
   selector: 'app-card-section',
   imports: [CabinetSection, MasterPreview, CompletenessMeter, ProfileForm, RouterLink],
   template: `
-    <app-cabinet-section
-      sectionId="card"
-      title="Моя карточка"
-      icon="id-card"
-      [open]="store.openSections().card"
-      [badge]="badge()"
-      (toggled)="store.toggleSection('card')"
-    >
+    <app-cabinet-section sectionId="card" title="Моя карточка" icon="id-card" [badge]="badge()">
       @if (store.master(); as master) {
         <div class="card-body">
           <div class="card-body__preview">

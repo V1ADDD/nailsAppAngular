@@ -1,0 +1,39 @@
+// Slot status colors (ТЗ 6.2) as custom properties: `@include status.vars('.block');`
+// gives `.block--pending { --status-bg … }` etc. Consumers read --status-bg / -border / -fg.
+@mixin vars($block) {
+  #{$block} {
+    --status-bg: var(--color-surface);
+    --status-border: var(--color-border-strong);
+    --status-fg: var(--color-text-secondary);
+  }
+
+  #{$block}--pending {
+    --status-bg: var(--color-warning-soft);
+    --status-border: var(--color-warning-border);
+    --status-fg: var(--color-warning-text);
+  }
+
+  #{$block}--booked {
+    --status-bg: var(--color-success-soft);
+    --status-border: var(--color-success-border);
+    --status-fg: var(--color-success-text);
+  }
+
+  #{$block}--busy {
+    --status-bg: var(--color-primary-soft);
+    --status-border: var(--color-primary-soft);
+    --status-fg: var(--color-primary);
+  }
+
+  #{$block}--completed {
+    --status-bg: var(--color-surface-muted);
+    --status-border: var(--color-border);
+    --status-fg: var(--color-text-secondary);
+  }
+
+  #{$block}--no-show {
+    --status-bg: var(--color-danger-soft);
+    --status-border: var(--color-danger-border);
+    --status-fg: var(--color-danger);
+  }
+}

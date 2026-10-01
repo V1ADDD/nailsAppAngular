@@ -11,7 +11,7 @@ import {
   MastersApi,
 } from '@app/core/data/api';
 import { type Master, type Review, type Slot } from '@app/core/data/models';
-import { minPrice, pendingReleaseAt } from '@app/core/data/rules';
+import { minPrice, onePerStart, pendingReleaseAt } from '@app/core/data/rules';
 import { dayKey } from '@app/shared/format/dates';
 import { buildDayOptions, groupServices, groupSlotsByDay } from './profile-helpers';
 
@@ -90,7 +90,9 @@ export interface BookOptions {
 export const MasterProfileStore = signalStore(
   withState(initialState),
   withComputed(({ master, slots, reviews, booking }) => {
-    const freeSlots = computed(() => slots().filter((s) => s.status === 'free'));
+    // Masters taking several clients at once have parallel slots: show one per start time.
+    const visible = computed(() => onePerStart(slots()));
+    const freeSlots = computed(() => visible().filter((s) => s.status === 'free'));
     const selectedSlot = computed(() => slots().find((s) => s.id === booking().slotId) ?? null);
     return {
       serviceGroups: computed(() => {
@@ -108,10 +110,10 @@ export const MasterProfileStore = signalStore(
         if (list.length === 0) return master()?.rating ?? 0;
         return list.reduce((sum, r) => sum + r.rating, 0) / list.length;
       }),
-      dayOptions: computed(() => buildDayOptions(slots(), new Date())),
+      dayOptions: computed(() => buildDayOptions(visible(), new Date())),
       daySlots: computed(() => {
         const day = booking().day;
-        return day ? slots().filter((s) => dayKey(s.start) === day) : [];
+        return day ? visible().filter((s) => dayKey(s.start) === day) : [];
       }),
       selectedService: computed(
         () => master()?.services.find((s) => s.subcategoryId === booking().subcategoryId) ?? null,

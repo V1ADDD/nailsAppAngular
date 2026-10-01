@@ -81,8 +81,8 @@
 
 .row__main {
   display: grid;
-  flex: 1;
-  min-width: 0;
+  flex: 1 1 0;
+  min-width: 6rem;
 }
 
 .row__name {
@@ -100,7 +100,8 @@
 }
 
 .row__tag {
-  flex-shrink: 1;
+  flex: 0 1 auto;
+  max-width: 42%;
   padding: var(--space-1) var(--space-3);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);

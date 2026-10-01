@@ -1,0 +1,9 @@
+// `.tint--<name>` classes: soft background + matching foreground (icon bubbles).
+@mixin classes {
+  @each $name in 'lilac', 'pink', 'mint', 'sky', 'amber' {
+    .tint--#{$name} {
+      color: var(--color-tint-#{$name}-fg);
+      background: var(--color-tint-#{$name});
+    }
+  }
+}

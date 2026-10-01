@@ -649,7 +649,13 @@ const ROWS: MasterRow[] = [
       ['manicure-gel', 'от 45', 90],
       ['manicure-removal', 10, 20],
     ],
-    schedule: { workDays: [1, 2, 3, 4, 5, 6], from: '09:00', to: '19:00', slotMinutes: 90 },
+    schedule: {
+      workDays: [1, 2, 3, 4, 5, 6],
+      from: '09:00',
+      to: '19:00',
+      slotMinutes: 90,
+      breaks: [{ from: '13:30', to: '15:00' }],
+    },
   },
 ];
 
@@ -710,6 +716,8 @@ export const MASTERS: readonly Master[] = ROWS.map((row, i) => ({
     from: '10:00',
     to: '19:00',
     slotMinutes: 90,
+    breaks: [],
+    capacity: 1,
     ...row.schedule,
   },
   autoConfirm: { enabled: false, afterMinutes: 30 },

@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { fmt } from '@app/shared/format/dates';
 import { type MonthCell, keyToDate } from '../../state/schedule-logic';
@@ -7,6 +8,7 @@ const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 /** Month calendar with per-day dots: free / pending / taken. Click opens the day. */
 @Component({
   selector: 'app-schedule-month',
+  imports: [DatePipe],
   template: `
     <table class="month">
       <caption class="visually-hidden">
@@ -42,6 +44,16 @@ const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
                     }
                     @if (cell.free) {
                       <span class="dot"></span>
+                    }
+                  </span>
+                  <span class="cell__items" aria-hidden="true">
+                    @for (item of cell.items; track item.id) {
+                      <span class="cell__item" [class]="'cell__item--' + item.status"
+                        >{{ item.start | date: 'HH:mm' }} {{ item.booking?.clientName }}</span
+                      >
+                    }
+                    @if (cell.more) {
+                      <span class="cell__more">ещё {{ cell.more }}</span>
                     }
                   </span>
                   @if (cell.taken + cell.pending) {

@@ -8,6 +8,8 @@ import {
   type Master,
   type MasterService,
   type Price,
+  type ScheduleTemplate,
+  type Slot,
   type SlotStatus,
 } from './models';
 
@@ -171,6 +173,104 @@ export function matchMaster(master: Master, query: string): SearchMatch {
 }
 
 // ── Slots & bookings (ТЗ 6) ───────────────────────────────────────────────────
+
+/** 'HH:mm' → minutes since midnight. */
+export function toMinutes(hhmm: string): number {
+  const [h, m] = hhmm.split(':').map(Number) as [number, number];
+  return h * 60 + m;
+}
+
+/** Minutes since midnight → 'HH:mm'. */
+export function toHhmm(minutes: number): string {
+  const h = String(Math.floor(minutes / 60)).padStart(2, '0');
+  return `${h}:${String(minutes % 60).padStart(2, '0')}`;
+}
+
+export type TemplateTimes = Pick<ScheduleTemplate, 'from' | 'to' | 'slotMinutes' | 'breaks'>;
+
+/**
+ * ТЗ 6.1: slot start times ('HH:mm') of one working day. A slot never runs into a break:
+ * the next one starts right after the break ends.
+ */
+export function templateTimes(template: TemplateTimes): string[] {
+  const length = Math.max(5, template.slotMinutes);
+  const end = toMinutes(template.to);
+  const breaks = template.breaks
+    .map((b) => ({ from: toMinutes(b.from), to: toMinutes(b.to) }))
+    .filter((b) => b.to > b.from);
+  const times: string[] = [];
+  let cursor = toMinutes(template.from);
+  while (cursor + length <= end) {
+    const clash = breaks.find((b) => cursor < b.to && b.from < cursor + length);
+    if (clash) {
+      cursor = clash.to;
+      continue;
+    }
+    times.push(toHhmm(cursor));
+    cursor += length;
+  }
+  return times;
+}
+
+export const MAX_CAPACITY = 5;
+
+/** Validation message for a schedule, or null when slots can be generated from it. */
+export function templateError(template: ScheduleTemplate): string | null {
+  if (!template.workDays.length) return 'Выберите хотя бы один рабочий день';
+  if (!template.from || !template.to || template.from >= template.to) {
+    return 'Конец рабочего дня должен быть позже начала';
+  }
+  for (const b of template.breaks) {
+    if (!b.from || !b.to || b.from >= b.to) return 'Перерыв должен заканчиваться позже начала';
+    if (b.from < template.from || b.to > template.to) {
+      return 'Перерыв должен быть внутри рабочего дня';
+    }
+  }
+  const capacity = template.capacity;
+  if (!Number.isInteger(capacity) || capacity < 1 || capacity > MAX_CAPACITY) {
+    return `Одновременно можно принимать от 1 до ${MAX_CAPACITY} клиентов`;
+  }
+  if (!templateTimes(template).length) return 'В рабочий день не помещается ни одна процедура';
+  return null;
+}
+
+/**
+ * Expected revenue (ТЗ 7.3): for every service, upcoming bookings × the service's current
+ * price in the cabinet, summed. «от 45» counts as 45, free as 0. A booking of a service
+ * that was removed since falls back to the price it was booked at.
+ */
+export function expectedRevenue(
+  bookings: readonly Pick<Booking, 'subcategoryId' | 'price'>[],
+  services: readonly MasterService[],
+): { subcategoryId: string; count: number; price: number; total: number }[] {
+  const lines = new Map<string, { subcategoryId: string; count: number; price: number }>();
+  for (const booking of bookings) {
+    const line = lines.get(booking.subcategoryId);
+    if (line) {
+      line.count++;
+      continue;
+    }
+    const service = services.find((s) => s.subcategoryId === booking.subcategoryId);
+    const price = priceValue(service?.price ?? booking.price);
+    lines.set(booking.subcategoryId, { subcategoryId: booking.subcategoryId, count: 1, price });
+  }
+  return [...lines.values()]
+    .map((l) => ({ ...l, total: l.count * l.price }))
+    .sort((a, b) => b.total - a.total);
+}
+
+/**
+ * A master with capacity > 1 has parallel slots at the same start. Clients see one slot
+ * per start: a free one while any place is left.
+ */
+export function onePerStart<T extends Pick<Slot, 'start' | 'status'>>(slots: readonly T[]): T[] {
+  const byStart = new Map<string, T>();
+  for (const slot of slots) {
+    const kept = byStart.get(slot.start);
+    if (!kept || (kept.status !== 'free' && slot.status === 'free')) byStart.set(slot.start, slot);
+  }
+  return [...byStart.values()];
+}
 
 /** ТЗ 6.2: clients never see whether a busy slot is a site booking or an external one. */
 export function slotStatusFor(

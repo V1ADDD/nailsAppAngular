@@ -1,0 +1,143 @@
+<form class="form" (ngSubmit)="submit()">
+  <fieldset class="group">
+    <legend class="group__title">Рабочие дни</legend>
+    <div class="days">
+      @for (day of weekdays; track day.value) {
+        <button
+          type="button"
+          class="day"
+          [attr.aria-pressed]="workDays().includes(day.value)"
+          [attr.aria-label]="day.full"
+          (click)="toggleDay(day.value)"
+        >
+          {{ day.short }}
+        </button>
+      }
+    </div>
+  </fieldset>
+
+  <fieldset class="group">
+    <legend class="group__title">Часы работы</legend>
+    <div class="range">
+      <label class="field">
+        <span class="field__label">С</span>
+        <input class="input" type="time" name="from" step="900" [(ngModel)]="from" />
+      </label>
+      <span class="range__dash" aria-hidden="true">—</span>
+      <label class="field">
+        <span class="field__label">До</span>
+        <input class="input" type="time" name="to" step="900" [(ngModel)]="to" />
+      </label>
+    </div>
+  </fieldset>
+
+  <fieldset class="group">
+    <legend class="group__title">Перерывы</legend>
+    @for (item of breaks(); track $index; let i = $index) {
+      <div class="range">
+        <label class="field">
+          <span class="visually-hidden">Начало перерыва {{ i + 1 }}</span>
+          <input
+            class="input"
+            type="time"
+            step="900"
+            [name]="'break-from-' + i"
+            [ngModel]="item.from"
+            (ngModelChange)="updateBreak(i, { from: $event })"
+          />
+        </label>
+        <span class="range__dash" aria-hidden="true">—</span>
+        <label class="field">
+          <span class="visually-hidden">Конец перерыва {{ i + 1 }}</span>
+          <input
+            class="input"
+            type="time"
+            step="900"
+            [name]="'break-to-' + i"
+            [ngModel]="item.to"
+            (ngModelChange)="updateBreak(i, { to: $event })"
+          />
+        </label>
+        <button
+          type="button"
+          class="btn btn--icon btn--ghost"
+          [attr.aria-label]="'Удалить перерыв ' + item.from + '–' + item.to"
+          (click)="removeBreak(i)"
+        >
+          <app-icon name="trash" [size]="18" />
+        </button>
+      </div>
+    } @empty {
+      <p class="group__hint">Без перерывов: окна идут подряд.</p>
+    }
+    <button type="button" class="btn btn--outline btn--sm group__add" (click)="addBreak()">
+      <app-icon name="plus" [size]="16" /> Добавить перерыв
+    </button>
+  </fieldset>
+
+  <fieldset class="group">
+    <legend class="group__title">Длительность процедуры</legend>
+    <div class="chips">
+      @for (minutes of durations; track minutes) {
+        <button
+          type="button"
+          class="chip"
+          [attr.aria-pressed]="slotMinutes() === minutes"
+          (click)="slotMinutes.set(minutes)"
+        >
+          {{ durationLabel(minutes) }}
+        </button>
+      }
+    </div>
+    <p class="group__hint">Это длина одного окна в расписании.</p>
+  </fieldset>
+
+  <fieldset class="group">
+    <legend class="group__title">Клиентов одновременно</legend>
+    <div class="stepper">
+      <button
+        type="button"
+        class="btn btn--icon btn--outline"
+        aria-label="Меньше"
+        [disabled]="capacity() <= 1"
+        (click)="stepCapacity(-1)"
+      >
+        <app-icon name="minus" [size]="18" />
+      </button>
+      <output class="stepper__value" aria-live="polite">{{ capacity() }}</output>
+      <button
+        type="button"
+        class="btn btn--icon btn--outline"
+        aria-label="Больше"
+        [disabled]="capacity() >= maxCapacity"
+        (click)="stepCapacity(1)"
+      >
+        <app-icon name="plus" [size]="18" />
+      </button>
+    </div>
+    <p class="group__hint">
+      Больше одного, если с вами работает помощник или процедуры можно совмещать.
+    </p>
+  </fieldset>
+
+  <section class="preview" aria-live="polite" aria-label="Как будет выглядеть день">
+    @if (error(); as message) {
+      <p class="field__error" role="alert">{{ message }}</p>
+    } @else {
+      <p class="preview__title">{{ summary() }}</p>
+      <ul class="preview__times">
+        @for (time of previewTimes(); track time) {
+          <li>{{ time }}</li>
+        }
+        @if (moreTimes() > 0) {
+          <li class="preview__more">+{{ moreTimes() }}</li>
+        }
+      </ul>
+    }
+  </section>
+
+  <button type="submit" class="btn btn--gradient btn--block" [disabled]="saving() || !!error()">
+    Сохранить и обновить окна на {{ days() }} дней
+  </button>
+  <p class="group__hint">Свободные окна пересоздадутся, записи клиентов останутся на месте.</p>
+</form>

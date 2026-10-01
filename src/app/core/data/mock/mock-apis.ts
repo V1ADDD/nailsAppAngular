@@ -41,7 +41,14 @@ import {
   type ScheduleTemplate,
   type Slot,
 } from '../models';
-import { bookingConflicts, priceValue, slotStatusFor } from '../rules';
+import {
+  bookingConflicts,
+  expectedRevenue,
+  overlaps,
+  priceValue,
+  slotStatusFor,
+  templateTimes,
+} from '../rules';
 import { MockDb } from './mock-db';
 
 /** Runs `fn` against the mock DB lazily (on subscribe) and returns its result with latency. */
@@ -174,7 +181,14 @@ export class MockAccountApi extends AccountApi {
         services: [],
         portfolio: [],
         bookingsCount: 0,
-        schedule: { workDays: [1, 2, 3, 4, 5], from: '10:00', to: '19:00', slotMinutes: 90 },
+        schedule: {
+          workDays: [1, 2, 3, 4, 5],
+          from: '10:00',
+          to: '19:00',
+          slotMinutes: 90,
+          breaks: [],
+          capacity: 1,
+        },
         autoConfirm: { enabled: false, afterMinutes: 30 },
       };
       this.db.state.masters.push(master);
@@ -423,8 +437,7 @@ export class MockBookingsApi extends BookingsApi {
         (s) => s.masterId !== masterId || s.status !== 'free' || new Date(s.start) <= now,
       );
       const taken = this.db.state.slots.filter((s) => s.masterId === masterId);
-      const [fh, fm] = template.from.split(':').map(Number) as [number, number];
-      const [th, tm] = template.to.split(':').map(Number) as [number, number];
+      const times = templateTimes(template);
       const minskNow = new Date(now.getTime() + 3 * 3_600_000);
       for (let day = 0; day < days; day++) {
         const d = new Date(
@@ -432,30 +445,22 @@ export class MockBookingsApi extends BookingsApi {
         );
         const weekday = d.getUTCDay() === 0 ? 7 : d.getUTCDay();
         if (!template.workDays.includes(weekday)) continue;
-        for (
-          let t = fh * 60 + fm;
-          t + template.slotMinutes <= th * 60 + tm;
-          t += template.slotMinutes
-        ) {
-          const start = new Date(d.getTime() + (t - 180) * 60_000);
+        const key = d.toISOString().slice(0, 10);
+        for (const time of times) {
+          const start = new Date(`${key}T${time}:00+03:00`);
           if (start <= now) continue;
-          const iso = start.toISOString();
-          const clash = taken.some((s) => {
-            const sStart = new Date(s.start).getTime();
-            return (
-              sStart < start.getTime() + template.slotMinutes * 60_000 &&
-              start.getTime() < sStart + s.durationMin * 60_000
-            );
-          });
-          if (clash) continue;
-          this.db.state.slots.push({
-            id: this.db.nextId('slot'),
-            masterId,
-            start: iso,
-            durationMin: template.slotMinutes,
-            status: 'free',
-            bookingId: null,
-          });
+          const candidate = { start: start.toISOString(), durationMin: template.slotMinutes };
+          // Parallel places (capacity) minus whatever already occupies this time.
+          const clashes = taken.filter((s) => overlaps(s, candidate)).length;
+          for (let place = clashes; place < template.capacity; place++) {
+            this.db.state.slots.push({
+              id: this.db.nextId('slot'),
+              masterId,
+              status: 'free',
+              bookingId: null,
+              ...candidate,
+            });
+          }
         }
       }
       return this.db.state.slots.filter((s) => s.masterId === masterId).sort(byStart);
@@ -464,6 +469,7 @@ export class MockBookingsApi extends BookingsApi {
 
   addSlot(masterId: string, start: IsoDate, durationMin: number): Observable<Slot> {
     return run(this.db, () => {
+      if (new Date(start) <= this.db.now()) throw new Error('Это время уже прошло');
       const slot: Slot = {
         id: this.db.nextId('slot'),
         masterId,
@@ -824,6 +830,7 @@ export class MockCabinetApi extends CabinetApi {
       const upcoming = own.filter(
         (b) => inFuture(b) && (b.status === 'confirmed' || b.status === 'pending'),
       );
+      const forecast = expectedRevenue(upcoming, this.db.master(masterId).services);
       return {
         period,
         completed: past.filter((b) => b.status === 'completed').length,
@@ -833,7 +840,11 @@ export class MockCabinetApi extends CabinetApi {
         revenue: past
           .filter((b) => b.status === 'completed')
           .reduce((sum, b) => sum + priceValue(b.price), 0),
-        expectedRevenue: upcoming.reduce((sum, b) => sum + priceValue(b.price), 0),
+        expectedRevenue: forecast.reduce((sum, line) => sum + line.total, 0),
+        expectedByService: forecast.map((line) => ({
+          ...line,
+          serviceName: subcategoryName(line.subcategoryId),
+        })),
       };
     });
   }

@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { PORTFOLIO_LIMIT } from '@app/core/data/api';
-import { CabinetStore } from '../../../state/cabinet.store';
-import { CabinetSection } from '../../../ui/cabinet-section/cabinet-section';
-import { PortfolioGrid } from '../../../ui/portfolio-grid/portfolio-grid';
+import { CabinetStore } from '../../state/cabinet.store';
+import { CabinetSection } from '../../ui/cabinet-section/cabinet-section';
+import { PortfolioGrid } from '../../ui/portfolio-grid/portfolio-grid';
 import { injectCabinetFeedback } from './cabinet-feedback';
 
 /** 5. «Портфолио» (ТЗ 4.3). */
@@ -10,14 +10,7 @@ import { injectCabinetFeedback } from './cabinet-feedback';
   selector: 'app-portfolio-section',
   imports: [CabinetSection, PortfolioGrid],
   template: `
-    <app-cabinet-section
-      sectionId="portfolio"
-      title="Портфолио"
-      icon="image"
-      [open]="store.openSections().portfolio"
-      [badge]="badge()"
-      (toggled)="store.toggleSection('portfolio')"
-    >
+    <app-cabinet-section sectionId="portfolio" title="Портфолио" icon="image" [badge]="badge()">
       @if (store.master(); as master) {
         <app-portfolio-grid
           [photos]="master.portfolio"

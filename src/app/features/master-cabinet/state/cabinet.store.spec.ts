@@ -24,7 +24,14 @@ const master = {
   courses: [],
   services: [],
   contacts: { phone: '+375291112233', email: 'anna@mail.by' },
-  schedule: { workDays: [1, 2, 3, 4, 5], from: '10:00', to: '19:00', slotMinutes: 90 },
+  schedule: {
+    workDays: [1, 2, 3, 4, 5],
+    from: '10:00',
+    to: '19:00',
+    slotMinutes: 90,
+    breaks: [],
+    capacity: 1,
+  },
   verification: 'none',
 } as unknown as Master;
 
@@ -45,6 +52,7 @@ const stats = (period: CabinetStats['period']): CabinetStats => ({
   upcoming: 2,
   revenue: 120,
   expectedRevenue: 80,
+  expectedByService: [],
 });
 
 const clients = [
@@ -104,7 +112,7 @@ describe('CabinetStore', () => {
     expect(bookingsApi.slots).toHaveBeenCalledWith('m1');
     expect(store.slots()).toEqual([slot]);
     expect(store.clients()).toHaveLength(2);
-    expect(cabinetApi.stats).toHaveBeenCalledWith('m1', 'week');
+    expect(cabinetApi.stats).toHaveBeenCalledWith('m1', 'month');
     expect(store.currentStats()?.revenue).toBe(120);
     expect(mastersApi.list).toHaveBeenCalled();
     expect(store.loading().schedule).toBe(false);
@@ -116,15 +124,6 @@ describe('CabinetStore', () => {
     TestBed.tick();
     expect(store.master()?.name).toBe('Анна С.');
     expect(bookingsApi.slots).toHaveBeenCalledTimes(1);
-  });
-
-  it('opens «Расписание» by default and toggles sections', () => {
-    const { store } = setup();
-    expect(store.openSections().schedule).toBe(true);
-    expect(store.openSections().card).toBe(false);
-    store.toggleSection('card');
-    store.toggleSection('schedule');
-    expect(store.openSections()).toMatchObject({ card: true, schedule: false });
   });
 
   it('moves the schedule date by period and opens a day from the month view', () => {
@@ -143,7 +142,7 @@ describe('CabinetStore', () => {
     store.setStatsPeriod('day');
     store.setStatsPeriod('week');
     store.setStatsPeriod('day');
-    expect(cabinetApi.stats).toHaveBeenCalledTimes(2);
+    expect(cabinetApi.stats).toHaveBeenCalledTimes(3);
     expect(store.currentStats()?.period).toBe('day');
   });
 
@@ -185,7 +184,14 @@ describe('CabinetStore', () => {
     expect(store.slots().map((s) => s.id)).toEqual(['s0', 's1']);
     store.removeSlot('s0');
     expect(store.slots().map((s) => s.id)).toEqual(['s1']);
-    const template = { workDays: [6], from: '09:00', to: '12:00', slotMinutes: 60 };
+    const template = {
+      workDays: [6],
+      from: '09:00',
+      to: '12:00',
+      slotMinutes: 60,
+      breaks: [],
+      capacity: 1,
+    };
     store.generateSlots(template, 14);
     expect(bookingsApi.generateSlots).toHaveBeenCalledWith('m1', template, 14);
     expect(store.slots()).toHaveLength(2);
