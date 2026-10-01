@@ -70,13 +70,25 @@ export type PreferredContact = 'messages' | 'phone';
 
 export type VerificationStatus = 'none' | 'pending' | 'verified' | 'rejected';
 
+/** Wall-clock interval of a day, 'HH:mm'. */
+export interface TimeRange {
+  from: string;
+  to: string;
+}
+
+/** Master's working schedule («Рабочий график»); free slots are generated from it. */
 export interface ScheduleTemplate {
   /** ISO weekday numbers, 1 = Monday … 7 = Sunday. */
   workDays: readonly number[];
   /** Working hours, 'HH:mm'. */
   from: string;
   to: string;
+  /** Default procedure length = slot length. */
   slotMinutes: number;
+  /** Lunch and other breaks: no slot starts in or runs into one. */
+  breaks: readonly TimeRange[];
+  /** Clients the master can take at the same time (parallel slots per start time). */
+  capacity: number;
 }
 
 export interface AutoConfirm {

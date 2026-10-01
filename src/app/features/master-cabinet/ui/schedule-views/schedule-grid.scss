@@ -1,0 +1,220 @@
+@use '../status' as status;
+
+:host {
+  display: block;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+@include status.vars('.block');
+
+// Minutes → length on the grid.
+@function at($minutes) {
+  @return calc(#{$minutes} * var(--schedule-hour-height) / 60);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: var(--space-12) repeat(var(--cols), minmax(5.5rem, 1fr));
+  min-width: 0;
+}
+
+.grid__corner {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.grid__head {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-0-5);
+  padding: var(--space-2) var(--space-1);
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+
+  &:hover {
+    background: var(--color-surface-muted);
+  }
+}
+
+.grid__weekday {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.grid__date {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-8);
+  height: var(--space-8);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  border-radius: var(--radius-full);
+
+  .grid__head--today & {
+    color: var(--color-primary-contrast);
+    background: var(--gradient-primary);
+  }
+}
+
+.grid__hours {
+  position: relative;
+  height: at(var(--span));
+}
+
+.grid__hour {
+  display: block;
+  height: var(--schedule-hour-height);
+  padding-right: var(--space-2);
+  font-size: var(--font-size-2xs);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  text-align: right;
+  color: var(--color-text-muted);
+  transform: translateY(calc(var(--space-1-5) * -1));
+
+  &:first-child {
+    transform: none;
+  }
+}
+
+.grid__col {
+  position: relative;
+  height: at(var(--span));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--color-border) 0 1px,
+    transparent 1px var(--schedule-hour-height)
+  );
+  border-left: 1px solid var(--color-border);
+
+  &--today {
+    background-color: var(--color-tint-lilac);
+  }
+}
+
+.grid__now {
+  position: absolute;
+  top: at(var(--top));
+  right: 0;
+  left: 0;
+  z-index: 2;
+  height: var(--space-0-5);
+  background: var(--color-danger);
+
+  &::before {
+    position: absolute;
+    top: calc(var(--space-1) * -1);
+    left: calc(var(--space-1-5) * -1);
+    width: var(--space-2);
+    height: var(--space-2);
+    content: '';
+    background: var(--color-danger);
+    border-radius: var(--radius-full);
+  }
+}
+
+.block {
+  --lane: 0;
+  --lanes: 1;
+
+  position: absolute;
+  top: at(var(--top));
+  left: calc(var(--lane) * 100% / var(--lanes));
+  width: calc(100% / var(--lanes));
+  height: at(var(--h));
+  padding: 1px var(--space-0-5);
+}
+
+.block__btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  padding: var(--space-1) var(--space-1-5);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-tight);
+  text-align: left;
+  color: var(--status-fg);
+  background: var(--status-bg);
+  border: 1px solid var(--status-border);
+  border-left: var(--space-1) solid var(--status-fg);
+  border-radius: var(--radius-xs);
+  transition:
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+
+  &:hover {
+    z-index: 1;
+    box-shadow: var(--shadow-md);
+  }
+}
+
+.block--free {
+  z-index: 0;
+
+  .block__btn {
+    flex-direction: row;
+    gap: var(--space-1);
+    padding-block: 0;
+    align-items: flex-start;
+    color: var(--color-text-muted);
+    background: transparent;
+    border: 1px dashed var(--color-border-strong);
+    border-left-width: 1px;
+
+    &:hover {
+      color: var(--color-primary);
+      background: var(--color-surface);
+      border-color: var(--color-primary);
+    }
+  }
+}
+
+.block:not(.block--free) {
+  z-index: 1;
+}
+
+.block__time {
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.block__name {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+.block__name,
+.block__service {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.block--tiny {
+  .block__btn {
+    flex-direction: row;
+    gap: var(--space-1);
+    padding-block: 0;
+  }
+
+  .block__service {
+    display: none;
+  }
+}
+
+.block__places {
+  font-size: var(--font-size-2xs);
+}

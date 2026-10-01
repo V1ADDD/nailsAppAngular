@@ -1,0 +1,70 @@
+<div class="grid" [style.--cols]="days().length" [style.--span]="bounds().to - bounds().from">
+  <span class="grid__corner" aria-hidden="true"></span>
+  @for (day of days(); track day.key) {
+    <button
+      type="button"
+      class="grid__head"
+      [class.grid__head--today]="day.key === todayKey()"
+      [attr.aria-label]="'Открыть день ' + head(day.key, 'd MMMM')"
+      (click)="openDay.emit(day.key)"
+    >
+      <span class="grid__weekday">{{ head(day.key, 'EEEEEE') }}</span>
+      <span class="grid__date">{{ head(day.key, 'd') }}</span>
+    </button>
+  }
+
+  <div class="grid__hours" aria-hidden="true">
+    @for (hour of hours(); track hour) {
+      <span class="grid__hour">{{ hour }}</span>
+    }
+  </div>
+
+  @for (col of columns(); track col.key) {
+    <ul
+      class="grid__col"
+      [class.grid__col--today]="col.key === todayKey() && days().length > 1"
+      [attr.aria-label]="head(col.key, 'EEEE, d MMMM')"
+    >
+      @for (block of col.free; track block.row.id) {
+        <li class="block block--free" [style.--top]="block.top" [style.--h]="block.height">
+          <button
+            type="button"
+            class="block__btn"
+            [attr.aria-label]="freeLabel(block)"
+            (click)="pick.emit(block.row)"
+          >
+            <span class="block__time">{{ block.row.start | date: 'HH:mm' }}</span>
+            @if (block.places > 1) {
+              <span class="block__places" aria-hidden="true">×{{ block.places }}</span>
+            }
+          </button>
+        </li>
+      }
+      @for (block of col.bookings; track block.row.id) {
+        <li
+          class="block"
+          [class]="'block--' + block.row.status"
+          [class.block--tiny]="block.height < tiny"
+          [style.--top]="block.top"
+          [style.--h]="block.height"
+          [style.--lane]="block.lane"
+          [style.--lanes]="block.lanes"
+        >
+          <button
+            type="button"
+            class="block__btn"
+            [attr.aria-label]="bookingLabel(block)"
+            (click)="pick.emit(block.row)"
+          >
+            <span class="block__time">{{ block.row.start | date: 'HH:mm' }}</span>
+            <span class="block__name">{{ block.row.booking?.clientName }}</span>
+            <span class="block__service">{{ block.row.booking?.serviceName }}</span>
+          </button>
+        </li>
+      }
+      @if (col.key === todayKey() && nowTop() !== null) {
+        <li class="grid__now" [style.--top]="nowTop()" aria-hidden="true"></li>
+      }
+    </ul>
+  }
+</div>

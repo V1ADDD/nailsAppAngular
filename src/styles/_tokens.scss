@@ -40,6 +40,23 @@
   --color-danger-border: #fad4d4;
   --color-info: #2f80ed; // user location dot
 
+  // Tints: icon bubbles of the master cabinet hub (soft background + AA foreground)
+  --color-tint-lilac: #f1e9ff;
+  --color-tint-lilac-fg: #6a1fe0;
+  --color-tint-pink: #ffe6f0;
+  --color-tint-pink-fg: #b4235f;
+  --color-tint-mint: #e3f7ec;
+  --color-tint-mint-fg: #11713a;
+  --color-tint-sky: #e5efff;
+  --color-tint-sky-fg: #2257b5;
+  --color-tint-amber: #fff1d6;
+  --color-tint-amber-fg: #8a5600;
+  --gradient-hero: linear-gradient(135deg, #8b46ff 0%, #6a1fe0 55%, #b4235f 130%);
+  --color-hero-glow: rgb(255 255 255 / 18%);
+
+  // Schedule time grid
+  --schedule-hour-height: 3.5rem;
+
   // Map
   --color-map-land: #ece6dc;
   --color-map-block: #cfc3b5;
@@ -100,6 +117,7 @@
   // Motion
   --transition-fast: 120ms ease;
   --transition-base: 200ms ease;
+  --transition-slow: 320ms cubic-bezier(0.2, 0.7, 0.2, 1);
 
   // Layers
   --z-map-controls: 500;

@@ -1,63 +1,87 @@
+@use 'styles/breakpoints' as bp;
+@use '../tints' as tints;
+
 :host {
   display: block;
   min-width: 0;
+  animation: page-in var(--transition-slow) both;
 }
+
+@include tints.classes;
 
 .section {
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  display: grid;
+  gap: var(--space-4);
 }
 
-.section__heading {
-  font-size: var(--font-size-md);
-}
-
-.section__toggle {
+.section__head {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3);
-  width: 100%;
-  min-height: 4rem;
-  padding: var(--space-3) var(--space-4);
-  font-weight: var(--font-weight-semibold);
-  text-align: left;
-  background: var(--color-surface);
-  border: none;
+}
 
-  &[aria-expanded='true'] {
-    border-bottom: 1px solid var(--color-border);
+.section__back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-target);
+  height: var(--tap-target);
+  margin-left: calc(var(--space-2) * -1);
+  color: var(--color-text);
+  border-radius: var(--radius-full);
+  transition: background var(--transition-fast);
+
+  &:hover {
+    background: var(--color-surface-muted);
   }
 
-  &:focus-visible {
-    outline-offset: -2px;
+  @include bp.up(lg) {
+    display: none;
   }
 }
 
 .section__icon {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
   width: var(--space-10);
   height: var(--space-10);
-  color: var(--color-primary);
-  background: var(--color-primary-soft);
   border-radius: var(--radius-sm);
 }
 
 .section__title {
-  flex: 1;
-  min-width: 0;
-  overflow-wrap: anywhere;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
 }
 
-.section__chevron {
-  color: var(--color-text-muted);
+.section__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-left: auto;
+
+  &:empty {
+    display: none;
+  }
 }
 
 .section__body {
+  min-width: 0;
   padding: var(--space-4);
+  box-shadow: var(--shadow-sm);
 
-  &[hidden] {
-    display: none;
+  @include bp.up(md) {
+    padding: var(--space-5);
+  }
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-2));
   }
 }

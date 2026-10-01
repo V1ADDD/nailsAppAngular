@@ -2,9 +2,9 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { Router } from '@angular/router';
 import { SessionStore } from '@app/core/session/session.store';
 import { Icon } from '@app/shared/ui/icon/icon';
-import { CabinetStore } from '../../../state/cabinet.store';
-import { CabinetSection } from '../../../ui/cabinet-section/cabinet-section';
-import { ClientCard } from '../../../ui/client-card/client-card';
+import { CabinetStore } from '../../state/cabinet.store';
+import { CabinetSection } from '../../ui/cabinet-section/cabinet-section';
+import { ClientCard } from '../../ui/client-card/client-card';
 import { injectCabinetFeedback } from './cabinet-feedback';
 
 /** 3. «Клиенты» (ТЗ 7.2, 7.4): sorted by the nearest booking, searchable. */
@@ -12,14 +12,7 @@ import { injectCabinetFeedback } from './cabinet-feedback';
   selector: 'app-clients-section',
   imports: [CabinetSection, ClientCard, Icon],
   template: `
-    <app-cabinet-section
-      sectionId="clients"
-      title="Клиенты"
-      icon="users"
-      [open]="store.openSections().clients"
-      [badge]="badge()"
-      (toggled)="store.toggleSection('clients')"
-    >
+    <app-cabinet-section sectionId="clients" title="Клиенты" icon="users" [badge]="badge()">
       <div class="clients">
         <label class="search">
           <app-icon name="search" [size]="18" />

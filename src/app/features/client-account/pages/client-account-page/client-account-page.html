@@ -4,34 +4,11 @@
   <div class="account">
     <aside class="account__side" aria-label="Профиль клиента">
       <app-account-header class="account__header" [client]="session.client()" />
-      <app-account-nav
-        class="account__nav"
-        [tabs]="tabs"
-        [value]="activeTab()"
-        (valueChange)="selectTab($event)"
-      />
+      <app-account-nav class="account__nav" [items]="nav" />
     </aside>
 
-    <div
-      class="account__content"
-      role="tabpanel"
-      [id]="panelId(activeTab())"
-      [attr.aria-labelledby]="tabId(activeTab())"
-    >
-      @switch (activeTab()) {
-        @case ('bookings') {
-          <app-bookings-panel [sub]="activeSub()" (subChange)="selectSub($event)" />
-        }
-        @case ('favorites') {
-          <app-favorites-panel />
-        }
-        @case ('reviews') {
-          <app-reviews-panel />
-        }
-        @case ('settings') {
-          <app-settings-panel />
-        }
-      }
+    <div class="account__content">
+      <router-outlet />
     </div>
   </div>
 }

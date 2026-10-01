@@ -20,7 +20,6 @@
         <div class="skeleton page__skeleton page__skeleton--tall"></div>
         <div class="skeleton page__skeleton"></div>
         <div class="skeleton page__skeleton"></div>
-        <div class="skeleton page__skeleton"></div>
       </div>
     }
   } @else if (!session.isMaster()) {
@@ -28,17 +27,32 @@
       <app-become-master [saving]="store.saving()" (submitted)="becomeMaster($event)" />
     </div>
   } @else {
-    <div class="grid">
-      <div class="col col--main">
-        <app-schedule-section class="order-2" />
-        <app-clients-section class="order-3" />
-      </div>
-      <div class="col col--side">
-        <app-card-section class="order-1" />
-        <app-stats-section class="order-6" />
-        <app-services-section class="order-4" />
-        <app-portfolio-section class="order-5" />
-        <app-verification-section class="order-7" />
+    <div class="layout">
+      <nav class="menu card" aria-label="Разделы кабинета">
+        <a
+          class="menu__link"
+          routerLink="."
+          routerLinkActive="menu__link--active"
+          ariaCurrentWhenActive="page"
+          [routerLinkActiveOptions]="{ exact: true }"
+        >
+          <app-icon name="sparkles" [size]="20" />
+          Обзор
+        </a>
+        @for (page of pages; track page.path) {
+          <a
+            class="menu__link"
+            [routerLink]="page.path"
+            routerLinkActive="menu__link--active"
+            ariaCurrentWhenActive="page"
+          >
+            <app-icon [name]="page.icon" [size]="20" />
+            {{ page.title }}
+          </a>
+        }
+      </nav>
+      <div class="layout__content">
+        <router-outlet />
       </div>
     </div>
   }

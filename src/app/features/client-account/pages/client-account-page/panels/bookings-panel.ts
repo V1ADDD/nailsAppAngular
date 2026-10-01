@@ -4,7 +4,7 @@ import {
   computed,
   inject,
   input,
-  output,
+  linkedSignal,
   signal,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
@@ -24,7 +24,10 @@ import { PanelState } from '../../../ui/panel-state/panel-state';
 
 export type BookingsSub = 'upcoming' | 'past';
 
-/** «Записи»: upcoming / past bookings with confirm, chat, cancel and reschedule (ТЗ 6.4–6.6). */
+/**
+ * /profile/client/bookings — «Записи»: upcoming / past bookings with confirm, chat, cancel and
+ * reschedule (ТЗ 6.4–6.6). `?sub=past|upcoming` keeps the open sub-tab.
+ */
 @Component({
   selector: 'app-bookings-panel',
   imports: [BookingCard, CancelBookingSheet, Icon, PanelState, RouterLink, Tabs],
@@ -33,8 +36,8 @@ export type BookingsSub = 'upcoming' | 'past';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BookingsPanel {
-  readonly sub = input<BookingsSub>('upcoming');
-  readonly subChange = output<BookingsSub>();
+  /** `?sub=` query param (router input binding). */
+  readonly sub = input<string>();
 
   protected readonly store = inject(ClientAccountStore);
   private readonly session = inject(SessionStore);
@@ -45,13 +48,25 @@ export class BookingsPanel {
     { value: 'upcoming', label: 'Предстоящие' },
     { value: 'past', label: 'Прошлые' },
   ]);
+  protected readonly activeSub = linkedSignal<BookingsSub>(() =>
+    this.sub() === 'past' ? 'past' : 'upcoming',
+  );
   protected readonly list = computed(() =>
-    this.sub() === 'past' ? this.store.past() : this.store.upcoming(),
+    this.activeSub() === 'past' ? this.store.past() : this.store.upcoming(),
   );
 
   protected readonly selected = signal<BookingView | null>(null);
   protected readonly mode = signal<CancelMode>('cancel');
   protected readonly sheetOpen = signal(false);
+
+  protected selectSub(sub: BookingsSub): void {
+    this.activeSub.set(sub);
+    void this.router.navigate([], {
+      queryParams: { sub },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
 
   protected retry(): void {
     this.store.loadBookings(this.session.client()?.id ?? null);

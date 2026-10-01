@@ -1,42 +1,31 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { type BecomeMasterInput } from '@app/core/data/api';
 import { SessionStore } from '@app/core/session/session.store';
+import { Icon } from '@app/shared/ui/icon/icon';
+import { CABINET_PAGES } from '../../state/cabinet-pages';
 import { CabinetStore } from '../../state/cabinet.store';
 import { BecomeMaster } from '../../ui/become-master/become-master';
-import { CardSection } from './sections/card-section';
-import { ClientsSection } from './sections/clients-section';
-import { PortfolioSection } from './sections/portfolio-section';
-import { ScheduleSection } from './sections/schedule-section';
-import { ServicesSection } from './sections/services-section';
-import { StatsSection } from './sections/stats-section';
-import { VerificationSection } from './sections/verification-section';
-import { injectCabinetFeedback } from './sections/cabinet-feedback';
+import { injectCabinetFeedback } from '../sections/cabinet-feedback';
 
 /**
- * /profile/master — «Кабинет мастера» (ТЗ 4, 6, 7): accordion stack on mobile, two
- * columns on desktop. Users without a master profile get the onboarding (ТЗ 2.2).
+ * /profile/master — «Кабинет мастера» (ТЗ 4, 6, 7). Owns the CabinetStore shared by the
+ * hub and every cabinet page; side menu from lg. Users without a master profile get the
+ * onboarding (ТЗ 2.2).
  */
 @Component({
-  selector: 'app-master-cabinet-page',
-  imports: [
-    BecomeMaster,
-    CardSection,
-    ScheduleSection,
-    ClientsSection,
-    ServicesSection,
-    PortfolioSection,
-    StatsSection,
-    VerificationSection,
-  ],
+  selector: 'app-cabinet-shell',
+  imports: [BecomeMaster, Icon, RouterLink, RouterLinkActive, RouterOutlet],
   providers: [CabinetStore],
-  templateUrl: './master-cabinet-page.html',
-  styleUrl: './master-cabinet-page.scss',
+  templateUrl: './cabinet-shell.html',
+  styleUrl: './cabinet-shell.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MasterCabinetPage {
+export class CabinetShell {
   protected readonly session = inject(SessionStore);
   protected readonly store = inject(CabinetStore);
   private readonly feedback = injectCabinetFeedback();
+  protected readonly pages = CABINET_PAGES;
 
   protected readonly initial = computed(() => {
     const name = this.session.master()?.name ?? this.session.client()?.name ?? '';

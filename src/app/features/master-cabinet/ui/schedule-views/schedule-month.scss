@@ -1,3 +1,6 @@
+@use 'styles/breakpoints' as bp;
+@use '../status' as status;
+
 .month {
   width: 100%;
   table-layout: fixed;
@@ -68,5 +71,52 @@
     display: inline-flex;
     align-items: center;
     gap: var(--space-1-5);
+  }
+}
+
+// Desktop: a real calendar — cells list the first bookings, the dots give way to names.
+@include status.vars('.cell__item');
+
+.cell__items {
+  display: none;
+}
+
+@include bp.up(lg) {
+  .cell {
+    align-content: start;
+    justify-items: stretch;
+    aspect-ratio: auto;
+    min-height: 6.5rem;
+    text-align: left;
+  }
+
+  .cell__dots,
+  .cell__count {
+    display: none;
+  }
+
+  .cell__items {
+    display: grid;
+    gap: var(--space-0-5);
+  }
+
+  .cell__item,
+  .cell__more {
+    overflow: hidden;
+    font-size: var(--font-size-2xs);
+    font-weight: var(--font-weight-semibold);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .cell__item {
+    padding: 0 var(--space-1);
+    color: var(--status-fg);
+    background: var(--status-bg);
+    border-radius: var(--radius-xs);
+  }
+
+  .cell__more {
+    color: var(--color-text-muted);
   }
 }

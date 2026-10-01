@@ -2,7 +2,7 @@ import { inject } from '@angular/core';
 import { type Master } from '@app/core/data/models';
 import { SessionStore } from '@app/core/session/session.store';
 import { ToastService } from '@app/shared/ui/toast/toast.service';
-import { type Done } from '../../../state/cabinet.store';
+import { type Done } from '../../state/cabinet.store';
 
 /**
  * Callbacks for store mutations: toast on success / error, and keep the session's master
@@ -19,6 +19,7 @@ export function injectCabinetFeedback() {
 
   return {
     toast,
+    syncMaster,
     done<T>(successText?: string, after?: (result: T) => void): Done<T> {
       return {
         onSuccess: (result) => {

@@ -49,10 +49,8 @@
   padding-top: var(--space-5);
 }
 
-.stack,
-.grid {
-  display: flex;
-  flex-direction: column;
+.stack {
+  display: grid;
   gap: var(--space-3);
 }
 
@@ -61,7 +59,7 @@
   border-radius: var(--radius-lg);
 
   &--tall {
-    height: 16rem;
+    height: 12rem;
   }
 }
 
@@ -70,29 +68,54 @@
   margin: 0 auto;
 }
 
-// Mobile / tablet: one stack in the ТЗ order. The column wrappers dissolve and `order`
-// interleaves their sections. Desktop: two independent columns.
-.col {
-  display: contents;
+// Below lg the hub is the menu; from lg a sticky side menu sits next to every page.
+.menu {
+  display: none;
 }
 
-@for $i from 1 through 7 {
-  .order-#{$i} {
-    order: $i;
-  }
+.layout__content {
+  min-width: 0;
 }
 
 @include bp.up(lg) {
-  .grid {
+  .layout {
     display: grid;
-    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    grid-template-columns: 16rem minmax(0, 1fr);
     align-items: start;
-    gap: var(--space-5);
+    gap: var(--space-6);
   }
 
-  .col {
+  .menu {
+    position: sticky;
+    top: calc(var(--header-height) + var(--space-4));
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-3);
+  }
+
+  .menu__link {
     display: flex;
-    flex-direction: column;
+    align-items: center;
     gap: var(--space-3);
+    min-height: var(--tap-target);
+    padding: var(--space-2) var(--space-3);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    transition:
+      background var(--transition-fast),
+      color var(--transition-fast);
+
+    &:hover {
+      color: var(--color-text);
+      background: var(--color-surface-muted);
+    }
+
+    &--active,
+    &--active:hover {
+      color: var(--color-primary);
+      background: var(--color-primary-soft);
+    }
   }
 }

@@ -1,0 +1,32 @@
+<app-sheet title="Добавить окно" [(open)]="open">
+  <form class="body" (ngSubmit)="submit()">
+    <p class="field__hint">
+      Разовое окно вне рабочего графика, например в выходной. Постоянные часы меняются в разделе
+      «Рабочий график».
+    </p>
+    <div class="row">
+      <label class="field">
+        <span class="field__label">Дата</span>
+        <input class="input" type="date" name="day" [min]="today" [(ngModel)]="day" />
+      </label>
+      <label class="field">
+        <span class="field__label">Время</span>
+        <input class="input" type="time" name="time" step="900" [(ngModel)]="time" />
+      </label>
+      <label class="field">
+        <span class="field__label">Длительность</span>
+        <select class="input" name="duration" [(ngModel)]="duration">
+          @for (minutes of durations; track minutes) {
+            <option [ngValue]="minutes">{{ durationLabel(minutes) }}</option>
+          }
+        </select>
+      </label>
+    </div>
+    @if (error(); as message) {
+      <p class="field__error" role="alert">{{ message }}</p>
+    }
+    <button type="submit" class="btn btn--gradient btn--block" [disabled]="saving() || !!error()">
+      Добавить окно
+    </button>
+  </form>
+</app-sheet>

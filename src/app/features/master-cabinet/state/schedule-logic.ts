@@ -1,7 +1,7 @@
 // Pure schedule / profile / client-search logic for the master cabinet (ТЗ 4.1, 6.2, 7.2).
 import { type BookingView, type CabinetClient, type StatsPeriod } from '@app/core/data/api';
 import { type Master, type Slot } from '@app/core/data/models';
-import { fuzzyIncludes, normalize } from '@app/core/data/rules';
+import { fuzzyIncludes, normalize, toMinutes } from '@app/core/data/rules';
 import { dayKey, fmt } from '@app/shared/format/dates';
 
 export type SchedulePeriod = StatsPeriod;
@@ -45,6 +45,9 @@ export interface MonthCell {
   free: number;
   taken: number;
   pending: number;
+  /** First bookings of the day for the desktop month grid. */
+  items: ScheduleRow[];
+  more: number;
 }
 
 // ── Day keys ('yyyy-MM-dd', Minsk calendar) ───────────────────────────────────
@@ -206,7 +209,10 @@ export function buildMonth(
     const week: MonthCell[] = [];
     for (let i = 0; i < 7; i++) {
       const rows = byDay.get(cursor) ?? [];
+      const taken = rows.filter((r) => r.status !== 'free');
       week.push({
+        items: taken.slice(0, MONTH_ITEMS),
+        more: Math.max(0, taken.length - MONTH_ITEMS),
         key: cursor,
         day: Number(cursor.slice(8)),
         inMonth: cursor.slice(0, 7) === month,
@@ -220,6 +226,158 @@ export function buildMonth(
     weeks.push(week);
   }
   return weeks;
+}
+
+const MONTH_ITEMS = 3;
+
+/** 90 → «1 ч 30 мин», 45 → «45 мин». */
+export function durationLabel(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (!h) return `${m} мин`;
+  return m ? `${h} ч ${m} мин` : `${h} ч`;
+}
+
+const WEEKDAY_SHORT = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+
+/** [1, 2, 3, 4, 5, 7] → «Пн–Пт, Вс». */
+export function workDaysLabel(days: readonly number[]): string {
+  const sorted = [...new Set(days)].sort((a, b) => a - b);
+  const parts: string[] = [];
+  for (let i = 0; i < sorted.length;) {
+    let j = i;
+    while (j + 1 < sorted.length && sorted[j + 1] === sorted[j]! + 1) j++;
+    const from = WEEKDAY_SHORT[sorted[i]! - 1]!;
+    const to = WEEKDAY_SHORT[sorted[j]! - 1]!;
+    parts.push(j - i >= 2 ? `${from}–${to}` : j > i ? `${from}, ${to}` : from);
+    i = j + 1;
+  }
+  return parts.join(', ') || 'Нет рабочих дней';
+}
+
+const startMinutes = (iso: string) => toMinutes(fmt(iso, 'HH:mm'));
+const endOf = (row: ScheduleRow) => new Date(row.start).getTime() + row.durationMin * 60_000;
+
+// ── Day agenda (mobile): bookings + free time collapsed into ranges ───────────
+
+/** A free start time; `places` > 1 when the master takes several clients at once. */
+export interface FreeChip {
+  row: ScheduleRow;
+  places: number;
+}
+
+export type AgendaItem =
+  | { kind: 'booking'; id: string; row: ScheduleRow }
+  | { kind: 'free'; id: string; start: string; end: string; chips: FreeChip[] };
+
+/**
+ * Turns a day of rows into an agenda: every booking is its own item, and runs of free
+ * slots between them collapse into one «Свободно 10:00–13:00» item with time chips, so a
+ * 15-minute grid doesn't become a hundred rows.
+ */
+export function buildAgenda(rows: readonly ScheduleRow[]): AgendaItem[] {
+  const items: AgendaItem[] = [];
+  let range: Extract<AgendaItem, { kind: 'free' }> | null = null;
+  for (const row of rows) {
+    if (row.status !== 'free') {
+      items.push({ kind: 'booking', id: row.id, row });
+      range = null;
+      continue;
+    }
+    const end = new Date(endOf(row)).toISOString();
+    // A gap (a break, an off-grid manual slot) starts a new range.
+    if (!range || new Date(row.start).getTime() > new Date(range.end).getTime()) {
+      range = { kind: 'free', id: `free-${row.id}`, start: row.start, end, chips: [] };
+      items.push(range);
+    }
+    const same = range.chips.find((c) => c.row.start === row.start);
+    if (same) same.places++;
+    else range.chips.push({ row, places: 1 });
+    if (end > range.end) range.end = end;
+  }
+  return items;
+}
+
+// ── Time grid (md+): Google-Calendar-like day / week columns ──────────────────
+
+export interface GridBlock {
+  row: ScheduleRow;
+  /** Minutes from the top of the grid. */
+  top: number;
+  height: number;
+  /** Side-by-side lanes for overlapping bookings (capacity > 1). */
+  lane: number;
+  lanes: number;
+  places: number;
+}
+
+export interface GridDay {
+  key: string;
+  bookings: GridBlock[];
+  free: GridBlock[];
+}
+
+export interface GridBounds {
+  /** Minutes since midnight, whole hours. */
+  from: number;
+  to: number;
+}
+
+/** Visible hours: the working day, widened to fit every row, whole hours. */
+export function gridBounds(
+  days: readonly ScheduleDay[],
+  work: { from: string; to: string },
+): GridBounds {
+  let from = toMinutes(work.from);
+  let to = toMinutes(work.to);
+  for (const day of days) {
+    for (const row of day.rows) {
+      const start = startMinutes(row.start);
+      from = Math.min(from, start);
+      to = Math.max(to, Math.min(24 * 60, start + row.durationMin));
+    }
+  }
+  return { from: Math.floor(from / 60) * 60, to: Math.min(24 * 60, Math.ceil(to / 60) * 60) };
+}
+
+export function layoutGridDay(day: ScheduleDay, bounds: GridBounds): GridDay {
+  const block = (row: ScheduleRow): GridBlock => ({
+    row,
+    top: startMinutes(row.start) - bounds.from,
+    height: row.durationMin,
+    lane: 0,
+    lanes: 1,
+    places: 1,
+  });
+
+  const free: GridBlock[] = [];
+  for (const row of day.rows.filter((r) => r.status === 'free')) {
+    const same = free.find((b) => b.row.start === row.start);
+    if (same) same.places++;
+    else free.push(block(row));
+  }
+
+  // Greedy lanes inside clusters of overlapping bookings.
+  const bookings = day.rows.filter((r) => r.status !== 'free').map(block);
+  let cluster: GridBlock[] = [];
+  let clusterEnd = -1;
+  const laneEnds: number[] = [];
+  const close = () => {
+    for (const b of cluster) b.lanes = laneEnds.length;
+    cluster = [];
+    laneEnds.length = 0;
+  };
+  for (const b of bookings) {
+    if (b.top >= clusterEnd) close();
+    let lane = laneEnds.findIndex((end) => end <= b.top);
+    if (lane === -1) lane = laneEnds.push(0) - 1;
+    laneEnds[lane] = b.top + b.height;
+    b.lane = lane;
+    cluster.push(b);
+    clusterEnd = Math.max(clusterEnd, b.top + b.height);
+  }
+  close();
+  return { key: day.key, bookings, free };
 }
 
 // ── Profile completeness (ТЗ 4.1 «Заполните профиль — будете популярнее») ─────

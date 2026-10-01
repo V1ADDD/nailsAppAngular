@@ -2,9 +2,13 @@ import { type BookingView, type CabinetClient } from '@app/core/data/api';
 import { type Master, type Slot } from '@app/core/data/models';
 import {
   addDaysToKey,
+  buildAgenda,
   buildMonth,
   buildRows,
   byNearestBooking,
+  durationLabel,
+  gridBounds,
+  layoutGridDay,
   buildWeek,
   groupByDay,
   matchClient,
@@ -15,6 +19,7 @@ import {
   shiftDate,
   weekStart,
   weekdayOf,
+  workDaysLabel,
 } from './schedule-logic';
 
 const NOW = new Date('2026-08-27T09:00:00.000Z'); // Thu 27 Aug, 12:00 Minsk
@@ -225,5 +230,179 @@ describe('byNearestBooking (ТЗ 7.4)', () => {
       .sort(byNearestBooking)
       .map((x) => x.client.id);
     expect(sorted).toEqual(['soon', 'late', 'none']);
+  });
+});
+
+const t = (hhmm: string) => minskIso('2026-08-28', hhmm);
+
+describe('buildAgenda', () => {
+  const free = (id: string, start: string, durationMin = 60) =>
+    buildRows([slot({ id, start, durationMin })], [], NOW)[0]!;
+  const booked = (id: string, start: string) =>
+    buildRows(
+      [slot({ id, start, status: 'booked', bookingId: `b-${id}` })],
+      [booking({ id: `b-${id}`, start })],
+      NOW,
+    )[0]!;
+
+  it('makes every booking its own item', () => {
+    const items = buildAgenda([booked('s1', t('10:00'))]);
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({ kind: 'booking', id: 's1' });
+  });
+
+  it('merges consecutive free rows into one range', () => {
+    const items = buildAgenda([
+      free('a', t('10:00')),
+      free('b', t('11:00')),
+      free('c', t('12:00')),
+    ]);
+    expect(items).toHaveLength(1);
+    const range = items[0]!;
+    if (range.kind !== 'free') throw new Error('expected free range');
+    expect(range.start).toBe(t('10:00'));
+    expect(range.end).toBe(t('13:00'));
+    expect(range.chips.map((c) => c.row.id)).toEqual(['a', 'b', 'c']);
+  });
+
+  it('starts a new range after a gap such as a lunch break', () => {
+    const items = buildAgenda([free('a', t('12:00')), free('b', t('14:00'))]);
+    expect(items.map((i) => (i.kind === 'free' ? [i.start, i.end] : null))).toEqual([
+      [t('12:00'), t('13:00')],
+      [t('14:00'), t('15:00')],
+    ]);
+  });
+
+  it('collapses parallel free slots at the same start into one chip with places', () => {
+    const items = buildAgenda([
+      free('a', t('10:00')),
+      free('b', t('10:00')),
+      free('c', t('11:00')),
+    ]);
+    const range = items[0]!;
+    if (range.kind !== 'free') throw new Error('expected free range');
+    expect(range.chips.map((c) => [c.row.id, c.places])).toEqual([
+      ['a', 2],
+      ['c', 1],
+    ]);
+  });
+
+  it('splits ranges around a booking', () => {
+    const items = buildAgenda([
+      free('a', t('10:00')),
+      booked('s', t('11:00')),
+      free('c', t('12:00')),
+    ]);
+    expect(items.map((i) => i.kind)).toEqual(['free', 'booking', 'free']);
+  });
+
+  it('is empty for no rows', () => {
+    expect(buildAgenda([])).toEqual([]);
+  });
+});
+
+describe('time grid', () => {
+  const rowsOf = (...specs: [string, string, 'free' | 'booked', number?][]) => {
+    const slots = specs.map(([id, time, status, dur]) =>
+      slot({
+        id,
+        start: t(time),
+        durationMin: dur ?? 60,
+        status,
+        bookingId: status === 'booked' ? `b-${id}` : null,
+      }),
+    );
+    const bookings = specs
+      .filter(([, , status]) => status === 'booked')
+      .map(([id, time, , dur]) =>
+        booking({ id: `b-${id}`, start: t(time), durationMin: dur ?? 60 }),
+      );
+    return buildRows(slots, bookings, NOW);
+  };
+  const work = { from: '10:00', to: '19:00' };
+
+  it('uses the working day in whole hours when rows fit', () => {
+    expect(gridBounds([{ key: '2026-08-28', rows: [] }], work)).toEqual({ from: 600, to: 1140 });
+  });
+
+  it('widens bounds to fit rows outside the working day', () => {
+    const early = { key: '2026-08-28', rows: rowsOf(['a', '08:30', 'free']) };
+    expect(gridBounds([early], work)).toEqual({ from: 480, to: 1140 });
+    const late = { key: '2026-08-28', rows: rowsOf(['z', '19:30', 'free', 90]) };
+    expect(gridBounds([late], work)).toEqual({ from: 600, to: 1260 });
+  });
+
+  it('positions blocks in minutes from the top of the grid', () => {
+    const rows = rowsOf(['a', '10:30', 'booked', 45]);
+    const grid = layoutGridDay({ key: '2026-08-28', rows }, { from: 600, to: 1140 });
+    expect(grid.bookings[0]).toMatchObject({ top: 30, height: 45, lane: 0, lanes: 1 });
+  });
+
+  it('puts overlapping bookings in separate lanes', () => {
+    const rows = rowsOf(
+      ['a', '10:00', 'booked'],
+      ['b', '10:30', 'booked'],
+      ['c', '13:00', 'booked'],
+    );
+    const grid = layoutGridDay({ key: '2026-08-28', rows }, { from: 600, to: 1140 });
+    const byId = Object.fromEntries(grid.bookings.map((b) => [b.row.id, b]));
+    expect(byId['a']).toMatchObject({ lane: 0, lanes: 2 });
+    expect(byId['b']).toMatchObject({ lane: 1, lanes: 2 });
+    expect(byId['c']).toMatchObject({ lane: 0, lanes: 1 });
+  });
+
+  it('dedupes parallel free slots into places', () => {
+    const rows = rowsOf(['a', '10:00', 'free'], ['b', '10:00', 'free'], ['c', '11:00', 'free']);
+    const grid = layoutGridDay({ key: '2026-08-28', rows }, { from: 600, to: 1140 });
+    expect(grid.free.map((b) => [b.row.id, b.places])).toEqual([
+      ['a', 2],
+      ['c', 1],
+    ]);
+    expect(grid.bookings).toEqual([]);
+  });
+});
+
+describe('workDaysLabel', () => {
+  it.each([
+    [[1, 2, 3, 4, 5], 'Пн–Пт'],
+    [[1, 2, 3, 4, 5, 7], 'Пн–Пт, Вс'],
+    [[1, 2], 'Пн, Вт'],
+    [[7, 1, 3], 'Пн, Ср, Вс'],
+    [[], 'Нет рабочих дней'],
+  ])('labels %j as «%s»', (days, label) => expect(workDaysLabel(days)).toBe(label));
+});
+
+describe('durationLabel', () => {
+  it.each([
+    [45, '45 мин'],
+    [60, '1 ч'],
+    [90, '1 ч 30 мин'],
+  ])('formats %i minutes', (minutes, label) => expect(durationLabel(minutes)).toBe(label));
+});
+
+describe('buildMonth items and more', () => {
+  it('lists up to 3 non-free rows per day and counts the rest', () => {
+    const day = (hhmm: string) => minskIso('2026-08-27', hhmm);
+    const times = ['09:00', '10:00', '11:00', '12:00', '13:00'];
+    const slots = [
+      ...times.map((time, i) =>
+        slot({ id: `s${i}`, start: day(time), status: 'booked', bookingId: `b${i}` }),
+      ),
+      slot({ id: 'f', start: day('15:00') }),
+    ];
+    const bookings = times.map((time, i) => booking({ id: `b${i}`, start: day(time) }));
+    const cell = buildMonth(groupByDay(buildRows(slots, bookings, NOW)), '2026-08-27', '2026-08-27')
+      .flat()
+      .find((c) => c.key === '2026-08-27')!;
+    expect(cell.items.map((r) => r.id)).toEqual(['s0', 's1', 's2']);
+    expect(cell.more).toBe(2);
+    expect(cell.free).toBe(1);
+  });
+
+  it('has no items and no overflow on an empty day', () => {
+    const cell = buildMonth(new Map(), '2026-08-27', '2026-08-27')
+      .flat()
+      .find((c) => c.key === '2026-08-10')!;
+    expect(cell).toMatchObject({ items: [], more: 0 });
   });
 });

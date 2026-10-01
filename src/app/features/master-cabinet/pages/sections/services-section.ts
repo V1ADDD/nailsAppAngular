@@ -3,11 +3,11 @@ import { type ServiceProposal } from '@app/core/data/api';
 import { subcategoryName } from '@app/core/data/catalog';
 import { type MasterService } from '@app/core/data/models';
 import { Icon } from '@app/shared/ui/icon/icon';
-import { CabinetStore } from '../../../state/cabinet.store';
-import { CabinetSection } from '../../../ui/cabinet-section/cabinet-section';
-import { ProposeSheet } from '../../../ui/propose-sheet/propose-sheet';
-import { ServiceList } from '../../../ui/service-list/service-list';
-import { type ServiceDraft, ServiceSheet } from '../../../ui/service-sheet/service-sheet';
+import { CabinetStore } from '../../state/cabinet.store';
+import { CabinetSection } from '../../ui/cabinet-section/cabinet-section';
+import { ProposeSheet } from '../../ui/propose-sheet/propose-sheet';
+import { ServiceList } from '../../ui/service-list/service-list';
+import { type ServiceDraft, ServiceSheet } from '../../ui/service-sheet/service-sheet';
 import { injectCabinetFeedback } from './cabinet-feedback';
 
 /** 4. «Услуги и цены» (ТЗ 4.2). */
@@ -19,9 +19,7 @@ import { injectCabinetFeedback } from './cabinet-feedback';
       sectionId="services"
       title="Услуги и цены"
       icon="scissors"
-      [open]="store.openSections().services"
       [badge]="badge()"
-      (toggled)="store.toggleSection('services')"
     >
       @if (store.master(); as master) {
         <div class="services">

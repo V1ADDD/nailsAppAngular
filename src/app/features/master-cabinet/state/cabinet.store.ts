@@ -51,9 +51,6 @@ import {
   shiftDate,
 } from './schedule-logic';
 
-export type SectionId =
-  'card' | 'schedule' | 'clients' | 'services' | 'portfolio' | 'stats' | 'verification';
-
 export type ProfilePatch = Parameters<CabinetApi['updateProfile']>[1];
 
 /** Optional callbacks so the UI can close sheets / show toasts after a mutation. */
@@ -81,7 +78,6 @@ interface CabinetState {
   scheduleDate: string;
   statsPeriod: StatsPeriod;
   clientQuery: string;
-  openSections: Record<SectionId, boolean>;
   loading: Record<Area, boolean>;
   errors: Record<Area, string | null>;
   /** A mutation is in flight (disables submit buttons). */
@@ -97,17 +93,8 @@ const initialState = (): CabinetState => ({
   allMasters: [],
   schedulePeriod: 'day',
   scheduleDate: dayKey(new Date()),
-  statsPeriod: 'week',
+  statsPeriod: 'month',
   clientQuery: '',
-  openSections: {
-    card: false,
-    schedule: true,
-    clients: false,
-    services: false,
-    portfolio: false,
-    stats: false,
-    verification: false,
-  },
   loading: { schedule: false, clients: false, stats: false, masters: false },
   errors: { schedule: null, clients: null, stats: null, masters: null },
   saving: false,
@@ -135,6 +122,24 @@ export const CabinetStore = signalStore(
           .sort(byNearestBooking),
       ),
       currentStats: computed(() => store.stats()[store.statsPeriod()] ?? null),
+      /** Hub summary: today's bookings and what waits for the master's answer. */
+      today: computed(() => {
+        const now = new Date().toISOString();
+        const rows = (rowsByDay().get(dayKey(new Date())) ?? []).filter((r) => r.booking);
+        return {
+          count: rows.length,
+          next: rows.find((r) => r.start > now && r.status !== 'no-show') ?? null,
+          free: (rowsByDay().get(dayKey(new Date())) ?? []).filter(
+            (r) => r.status === 'free' && r.start > now,
+          ).length,
+        };
+      }),
+      pendingCount: computed(
+        () =>
+          store
+            .bookings()
+            .filter((b) => b.status === 'pending' && b.start > new Date().toISOString()).length,
+      ),
     };
   }),
   withMethods(
@@ -295,11 +300,6 @@ export const CabinetStore = signalStore(
         },
 
         // ── UI state ─────────────────────────────────────────────────────────
-        toggleSection(id: SectionId): void {
-          patchState(store, {
-            openSections: { ...store.openSections(), [id]: !store.openSections()[id] },
-          });
-        },
         setSchedulePeriod(schedulePeriod: SchedulePeriod): void {
           patchState(store, { schedulePeriod });
         },

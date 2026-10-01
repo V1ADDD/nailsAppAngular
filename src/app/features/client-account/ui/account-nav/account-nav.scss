@@ -44,7 +44,7 @@
     color: var(--color-text);
   }
 
-  &[aria-selected='true'] {
+  &.nav__tab--active {
     color: var(--color-primary-contrast);
     background: var(--color-primary);
   }
@@ -63,7 +63,7 @@
       background: var(--color-surface-muted);
     }
 
-    &[aria-selected='true'] {
+    &.nav__tab--active {
       color: var(--color-primary);
       background: var(--color-primary-soft);
     }

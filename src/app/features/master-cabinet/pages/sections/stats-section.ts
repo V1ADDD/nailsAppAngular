@@ -1,25 +1,20 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Swipe } from '@app/shared/ui/swipe';
 import { Tabs } from '@app/shared/ui/tabs/tabs';
-import { CabinetStore } from '../../../state/cabinet.store';
-import { neighbourPeriod } from '../../../state/schedule-logic';
-import { CabinetSection } from '../../../ui/cabinet-section/cabinet-section';
-import { RevenueDonut } from '../../../ui/revenue-donut/revenue-donut';
-import { StatsTiles } from '../../../ui/stats-tiles/stats-tiles';
+import { CabinetStore } from '../../state/cabinet.store';
+import { neighbourPeriod } from '../../state/schedule-logic';
+import { CabinetSection } from '../../ui/cabinet-section/cabinet-section';
+import { RevenueDonut } from '../../ui/revenue-donut/revenue-donut';
+import { RevenueForecast } from '../../ui/revenue-forecast/revenue-forecast';
+import { StatsTiles } from '../../ui/stats-tiles/stats-tiles';
 import { PERIOD_TABS } from './schedule-section';
 
-/** 6. «Статистика» (ТЗ 7.3). */
+/** «Статистика» (ТЗ 7.3) + the expected revenue per service. */
 @Component({
   selector: 'app-stats-section',
-  imports: [CabinetSection, Tabs, Swipe, StatsTiles, RevenueDonut],
+  imports: [CabinetSection, Tabs, Swipe, StatsTiles, RevenueDonut, RevenueForecast],
   template: `
-    <app-cabinet-section
-      sectionId="stats"
-      title="Статистика"
-      icon="bar-chart"
-      [open]="store.openSections().stats"
-      (toggled)="store.toggleSection('stats')"
-    >
+    <app-cabinet-section sectionId="stats" title="Статистика" icon="bar-chart">
       <div
         class="stats"
         appSwipe
@@ -37,6 +32,7 @@ import { PERIOD_TABS } from './schedule-section';
         @if (store.currentStats(); as stats) {
           <app-revenue-donut [revenue]="stats.revenue" [expected]="stats.expectedRevenue" />
           <app-stats-tiles [stats]="stats" />
+          <app-revenue-forecast [lines]="stats.expectedByService" [total]="stats.expectedRevenue" />
         } @else if (store.errors().stats) {
           <div class="empty-state" role="alert">
             <p class="empty-state__title">Не удалось загрузить статистику</p>

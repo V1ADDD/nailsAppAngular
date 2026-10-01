@@ -1,7 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { type Observable, firstValueFrom } from 'rxjs';
-import { BookingsApi, ChatsApi, MastersApi } from '../api';
+import { BookingsApi, CabinetApi, ChatsApi, MastersApi } from '../api';
 import { ME_CLIENT_ID } from '../fixtures/seed';
+import { type ScheduleTemplate } from '../models';
+import { expectedRevenue } from '../rules';
 import { MOCK_API_PROVIDERS } from './mock-apis';
 import { CLOCK, MockDb } from './mock-db';
 
@@ -13,6 +15,7 @@ describe('mock backend', () => {
   let bookings: BookingsApi;
   let chats: ChatsApi;
   let masters: MastersApi;
+  let cabinet: CabinetApi;
   let db: MockDb;
 
   beforeEach(() => {
@@ -24,6 +27,7 @@ describe('mock backend', () => {
     bookings = TestBed.inject(BookingsApi);
     chats = TestBed.inject(ChatsApi);
     masters = TestBed.inject(MastersApi);
+    cabinet = TestBed.inject(CabinetApi);
     db = TestBed.inject(MockDb);
   });
 
@@ -133,5 +137,83 @@ describe('mock backend', () => {
     expect(asClient.every((c) => c.counterpart.isMaster)).toBe(true);
     expect(asMaster.every((c) => !c.counterpart.isMaster)).toBe(true);
     expect(asClient.find((c) => c.counterpart.name === 'Анна Серова')?.unread).toBe(2);
+  });
+
+  describe('generateSlots (capacity and breaks)', () => {
+    const MASTER = 'm-anna-serova';
+    const template: ScheduleTemplate = {
+      workDays: [1, 2, 3, 4, 5, 6, 7],
+      from: '10:00',
+      to: '18:00',
+      slotMinutes: 60,
+      breaks: [{ from: '14:00', to: '15:00' }],
+      capacity: 2,
+    };
+    const today = (time: string) => new Date(`2026-09-29T${time}:00+03:00`).toISOString();
+
+    beforeEach(() => {
+      db.state.slots = db.state.slots.filter((s) => s.masterId !== MASTER);
+    });
+
+    it('creates one free slot per place at every start and skips breaks', async () => {
+      const slots = await resolve(bookings.generateSlots(MASTER, template, 1));
+      const starts = [...new Set(slots.map((s) => s.start))];
+      // "now" is 12:00, so earlier starts are skipped; 14:00 is the break.
+      expect(starts).toEqual([today('13:00'), today('15:00'), today('16:00'), today('17:00')]);
+      for (const start of starts) {
+        expect(slots.filter((s) => s.start === start && s.status === 'free')).toHaveLength(2);
+      }
+    });
+
+    it('creates fewer places where a slot is already taken', async () => {
+      db.state.slots.push({
+        id: 'taken',
+        masterId: MASTER,
+        start: today('15:00'),
+        durationMin: 60,
+        status: 'booked',
+        bookingId: null,
+      });
+      const slots = await resolve(bookings.generateSlots(MASTER, template, 1));
+      const at15 = slots.filter((s) => s.start === today('15:00'));
+      expect(at15.filter((s) => s.status === 'free')).toHaveLength(1);
+      expect(at15.filter((s) => s.status === 'booked')).toHaveLength(1);
+      expect(slots.filter((s) => s.start === today('16:00'))).toHaveLength(2);
+    });
+
+    it('saves the template on the master', async () => {
+      await resolve(bookings.generateSlots(MASTER, template, 1));
+      expect(db.master(MASTER).schedule).toEqual(template);
+    });
+  });
+
+  describe('cabinet stats', () => {
+    it('returns expectedByService consistent with expectedRevenue', async () => {
+      const stats = await resolve(cabinet.stats('m-anna-serova', 'month'));
+      expect(stats.upcoming).toBeGreaterThan(0);
+      expect(stats.expectedByService.reduce((sum, l) => sum + l.total, 0)).toBe(
+        stats.expectedRevenue,
+      );
+      expect(stats.expectedByService.reduce((sum, l) => sum + l.count, 0)).toBe(stats.upcoming);
+
+      const upcoming = db.state.bookings.filter(
+        (b) =>
+          b.masterId === 'm-anna-serova' &&
+          (b.status === 'confirmed' || b.status === 'pending') &&
+          b.start > NOW.toISOString() &&
+          new Date(b.start).getTime() <= NOW.getTime() + 30 * 86_400_000,
+      );
+      const expected = expectedRevenue(upcoming, db.master('m-anna-serova').services);
+      expect(stats.expectedByService.map(({ serviceName: _name, ...line }) => line)).toEqual(
+        expected,
+      );
+      expect(stats.expectedByService.every((l) => l.serviceName.length > 0)).toBe(true);
+    });
+
+    it('is zero for a master without upcoming bookings', async () => {
+      db.state.bookings = db.state.bookings.filter((b) => b.masterId !== 'm-anna-serova');
+      const stats = await resolve(cabinet.stats('m-anna-serova', 'week'));
+      expect(stats).toMatchObject({ upcoming: 0, expectedRevenue: 0, expectedByService: [] });
+    });
   });
 });

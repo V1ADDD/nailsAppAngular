@@ -1,29 +1,32 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { type BookingView } from '@app/core/data/api';
-import { type ScheduleTemplate } from '@app/core/data/models';
 import { SessionStore } from '@app/core/session/session.store';
+import { plural } from '@app/shared/format/plural';
 import { Icon } from '@app/shared/ui/icon/icon';
+import { upFrom } from '@app/shared/ui/media-query';
 import { Swipe } from '@app/shared/ui/swipe';
 import { Tabs, type TabOption } from '@app/shared/ui/tabs/tabs';
-import { CabinetStore } from '../../../state/cabinet.store';
+import { CabinetStore } from '../../state/cabinet.store';
 import {
   type SchedulePeriod,
   type ScheduleRow,
+  gridBounds,
   neighbourPeriod,
   periodCaption,
-} from '../../../state/schedule-logic';
-import { BookingSheet, type CancelRequest } from '../../../ui/booking-sheet/booking-sheet';
-import { CabinetSection } from '../../../ui/cabinet-section/cabinet-section';
+} from '../../state/schedule-logic';
+import { BookingSheet, type CancelRequest } from '../../ui/booking-sheet/booking-sheet';
+import { CabinetSection } from '../../ui/cabinet-section/cabinet-section';
 import {
   type ExternalRequest,
   FreeSlotSheet,
   type SiteBookingRequest,
-} from '../../../ui/free-slot-sheet/free-slot-sheet';
-import { ScheduleDay } from '../../../ui/schedule-views/schedule-day';
-import { ScheduleMonth } from '../../../ui/schedule-views/schedule-month';
-import { ScheduleWeek } from '../../../ui/schedule-views/schedule-week';
-import { TEMPLATE_DAYS, TemplateSheet } from '../../../ui/template-sheet/template-sheet';
+} from '../../ui/free-slot-sheet/free-slot-sheet';
+import { AddSlotSheet } from '../../ui/add-slot-sheet/add-slot-sheet';
+import { ScheduleAgenda } from '../../ui/schedule-views/schedule-agenda';
+import { ScheduleGrid } from '../../ui/schedule-views/schedule-grid';
+import { ScheduleMonth } from '../../ui/schedule-views/schedule-month';
+import { ScheduleWeek } from '../../ui/schedule-views/schedule-week';
 import { injectCabinetFeedback } from './cabinet-feedback';
 
 export const PERIOD_TABS: readonly TabOption<SchedulePeriod>[] = [
@@ -32,7 +35,10 @@ export const PERIOD_TABS: readonly TabOption<SchedulePeriod>[] = [
   { value: 'month', label: 'Месяц' },
 ];
 
-/** 2. «Расписание» (ТЗ 6.1, 6.2, 6.3, 6.8, 7.1). */
+/**
+ * «Расписание» (ТЗ 6.1, 6.2, 6.3, 6.8, 7.1): phones get a day agenda / week cards, md+ a
+ * time grid like Google Calendar; the month is a calendar everywhere.
+ */
 @Component({
   selector: 'app-schedule-section',
   imports: [
@@ -40,12 +46,14 @@ export const PERIOD_TABS: readonly TabOption<SchedulePeriod>[] = [
     Tabs,
     Icon,
     Swipe,
-    ScheduleDay,
+    RouterLink,
+    ScheduleAgenda,
+    ScheduleGrid,
     ScheduleWeek,
     ScheduleMonth,
     BookingSheet,
     FreeSlotSheet,
-    TemplateSheet,
+    AddSlotSheet,
   ],
   templateUrl: './schedule-section.html',
   styleUrl: './schedule-section.scss',
@@ -65,7 +73,37 @@ export class ScheduleSection {
   private readonly selectedId = signal<string | null>(null);
   protected readonly bookingOpen = signal(false);
   protected readonly freeOpen = signal(false);
-  protected readonly templateOpen = signal(false);
+  protected readonly addOpen = signal(false);
+  /** md+: time grid instead of the phone agenda. */
+  protected readonly wide = upFrom('md');
+
+  private readonly workHours = computed(() => {
+    const schedule = this.store.master()?.schedule;
+    return { from: schedule?.from ?? '09:00', to: schedule?.to ?? '19:00' };
+  });
+  protected readonly dayBounds = computed(() =>
+    gridBounds([this.store.dayView()], this.workHours()),
+  );
+  protected readonly weekBounds = computed(() =>
+    gridBounds(this.store.weekView(), this.workHours()),
+  );
+
+  /** «3 записи · 1 ждёт · 12 свободных окон» for the visible day / week. */
+  protected readonly dayStats = computed(() => {
+    const period = this.store.schedulePeriod();
+    if (period === 'month') return null;
+    const rows = (period === 'day' ? [this.store.dayView()] : this.store.weekView()).flatMap(
+      (d) => d.rows,
+    );
+    const bookings = rows.filter((r) => r.booking).length;
+    const pending = rows.filter((r) => r.status === 'pending').length;
+    const free = new Set(rows.filter((r) => r.status === 'free').map((r) => r.start)).size;
+    return {
+      bookings: plural(bookings, ['запись', 'записи', 'записей']),
+      pending: pending ? `ждут ответа: ${pending}` : '',
+      free: free ? plural(free, ['свободное окно', 'свободных окна', 'свободных окон']) : '',
+    };
+  });
 
   /** Looked up live so the sheet reflects updates (e.g. a saved note). */
   protected readonly selected = computed<ScheduleRow | null>(() => {
@@ -93,7 +131,7 @@ export class ScheduleSection {
   private closeAll = () => {
     this.bookingOpen.set(false);
     this.freeOpen.set(false);
-    this.templateOpen.set(false);
+    this.addOpen.set(false);
   };
 
   // ── Booking actions ──────────────────────────────────────────────────────
@@ -151,15 +189,7 @@ export class ScheduleSection {
     this.store.removeSlot(slotId, this.feedback.done('Окно удалено', this.closeAll));
   }
 
-  // ── Template ─────────────────────────────────────────────────────────────
-  protected generate(template: ScheduleTemplate): void {
-    this.store.generateSlots(
-      template,
-      TEMPLATE_DAYS,
-      this.feedback.done(`Окна на ${TEMPLATE_DAYS} дней созданы`, this.closeAll),
-    );
-  }
-
+  // ── Manual slot ──────────────────────────────────────────────────────────
   protected addSlot(event: { start: string; durationMin: number }): void {
     this.store.addSlot(
       event.start,

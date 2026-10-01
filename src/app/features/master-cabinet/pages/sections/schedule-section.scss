@@ -1,0 +1,77 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.schedule {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.schedule__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+}
+
+.schedule__nav {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-1);
+  min-width: 16rem;
+}
+
+.schedule__caption {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+
+  &::first-letter {
+    text-transform: uppercase;
+  }
+}
+
+.schedule__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1-5);
+}
+
+.pill {
+  padding: var(--space-0-5) var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-full);
+
+  &--booked {
+    color: var(--color-success-text);
+    background: var(--color-success-soft);
+  }
+
+  &--pending {
+    color: var(--color-warning-text);
+    background: var(--color-warning-soft);
+  }
+}
+
+.schedule__area {
+  min-height: 8rem;
+}
+
+.schedule__skeleton {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.schedule__skeleton-row {
+  height: 4.25rem;
+  border-radius: var(--radius-md);
+}
