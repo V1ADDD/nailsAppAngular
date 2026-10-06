@@ -17,7 +17,9 @@
 </header>
 
 <app-search-map
+  #map
   class="map"
+  [class.map--card]="showCard()"
   [pins]="pins()"
   [center]="store.location()"
   [selectedId]="store.selectedId()"
@@ -30,8 +32,30 @@
   <span class="support-tab__label">Напишите нам</span>
 </button>
 
-<section class="panel" [class.panel--expanded]="expanded()" aria-label="Список мастеров">
-  @if (session.isGuest() && (isMd() || !expanded())) {
+@if (showCard() && selected(); as r) {
+  <div class="pin-card">
+    <app-master-mini-card [result]="r" [active]="true" />
+    <button
+      type="button"
+      class="pin-card__close"
+      aria-label="Закрыть карточку мастера"
+      (click)="store.select(null)"
+    >
+      <app-icon name="x" [size]="16" />
+    </button>
+  </div>
+}
+
+<section
+  #panel
+  class="panel"
+  [class.panel--dragging]="dragHeight() !== null"
+  [attr.data-snap]="snap()"
+  [style.height.px]="dragHeight()"
+  aria-label="Список мастеров"
+>
+  <span #peek class="panel__peek" aria-hidden="true"></span>
+  @if (session.isGuest() && (isMd() || (listClosed() && !showCard()))) {
     <a
       class="btn btn--primary btn--pill login-fab"
       routerLink="/login"
@@ -45,18 +69,24 @@
     [onlineCount]="store.onlineCount()"
     [loading]="store.loading()"
     [collapsible]="!isMd()"
-    [(expanded)]="expanded"
-    [showSort]="layout() === 'list'"
+    [snap]="snap()"
+    (handleTap)="toggleSheet()"
+    (snapChange)="snap.set($event)"
+    (dragStart)="onDragStart()"
+    (dragMove)="onDragMove($event)"
+    (dragEnd)="onDragEnd($event)"
+    [showSort]="!listClosed()"
     [sort]="store.sort()"
     (sortChange)="store.setSort($event)"
   />
   <app-master-list
     id="search-results"
     class="panel__list"
+    [attr.inert]="listClosed() ? '' : null"
     [results]="store.results()"
     [loading]="store.loading() || (store.slotsLoading() && store.filters().freeWindow !== null)"
     [error]="store.error()"
-    [layout]="layout()"
+    [followSelected]="!listClosed()"
     [selectedId]="store.selectedId()"
     [favoriteIds]="session.favoriteIds()"
     [ownId]="session.master()?.id ?? null"

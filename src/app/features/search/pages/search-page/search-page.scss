@@ -41,11 +41,6 @@
   }
 }
 
-.map {
-  grid-area: map;
-  isolation: isolate;
-}
-
 .support-tab {
   z-index: 1;
   display: flex;
@@ -77,6 +72,22 @@
   }
 }
 
+.map {
+  grid-area: map;
+  isolation: isolate;
+
+  // Phone: map controls sit above the collapsed sheet (and the pin card when shown).
+  --map-inset-bottom: calc(var(--sheet-peek-height) + var(--space-4));
+
+  &--card {
+    --map-inset-bottom: calc(var(--sheet-peek-height) + var(--map-card-clearance));
+  }
+
+  @include bp.up(md) {
+    --map-inset-bottom: var(--space-4);
+  }
+}
+
 .panel {
   position: relative;
   z-index: 2;
@@ -86,15 +97,24 @@
   align-self: end;
   width: 100%;
   min-width: 0;
-  max-height: 100%;
+  height: var(--sheet-peek-height);
   min-height: 0;
   background: var(--color-surface);
   border-top: 1px solid var(--color-border);
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   box-shadow: var(--shadow-lg);
+  transition: height var(--transition-slow);
 
-  &--expanded {
+  &[data-snap='half'] {
+    height: 50%;
+  }
+
+  &[data-snap='full'] {
     height: 88%;
+  }
+
+  &--dragging {
+    transition: none;
   }
 
   @include bp.up(md) {
@@ -105,6 +125,11 @@
     margin: var(--space-4);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-xl);
+    transition: none;
+
+    &[data-snap] {
+      height: auto;
+    }
   }
 
   @include bp.up(lg) {
@@ -118,7 +143,20 @@
   }
 }
 
+// Measures the collapsed height in px for drag snapping.
+.panel__peek {
+  position: absolute;
+  width: 0;
+  height: var(--sheet-peek-height);
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .panel__list {
+  &[inert] {
+    visibility: hidden;
+  }
+
   flex: 1;
   min-height: 0;
   overflow-y: auto;
@@ -127,16 +165,58 @@
 
 .login-fab {
   position: absolute;
-  right: var(--space-4);
   bottom: calc(100% + var(--space-3));
+  left: var(--space-4);
   box-shadow: var(--shadow-primary);
 
   @include bp.up(md) {
     position: fixed;
+    right: var(--space-4);
+    left: auto;
     bottom: calc(var(--bottom-nav-height) + var(--space-4));
   }
 
   @include bp.up(lg) {
     display: none;
+  }
+}
+
+// Tapped pin on a phone: mini card floats above the collapsed sheet.
+.pin-card {
+  position: relative;
+  z-index: 3;
+  grid-area: map;
+  align-self: end;
+  margin: 0 var(--space-4) calc(var(--sheet-peek-height) + var(--space-3));
+  background: var(--color-bg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  animation: pin-card-in var(--transition-slow);
+
+  @include bp.up(md) {
+    display: none;
+  }
+}
+
+.pin-card__close {
+  position: absolute;
+  top: calc(var(--space-2) * -1);
+  right: calc(var(--space-2) * -1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-8);
+  height: var(--space-8);
+  color: var(--color-text-secondary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-md);
+}
+
+@keyframes pin-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-4));
   }
 }

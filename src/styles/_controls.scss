@@ -243,6 +243,10 @@
     background: var(--color-surface-sunken);
     border-color: transparent;
   }
+
+  &[type='time'] {
+    padding-inline: var(--space-3);
+  }
 }
 
 textarea.input {

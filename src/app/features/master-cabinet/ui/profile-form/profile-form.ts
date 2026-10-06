@@ -18,8 +18,6 @@ type RequiredField = 'name' | 'phone' | 'email' | 'city' | 'address';
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE = /^\+?[\d\s()-]{7,}$/;
 
-export const AUTO_CONFIRM_OPTIONS = [15, 30, 60, 120] as const;
-
 /** ТЗ 4.1 + 6.4: editable master profile. Emits a patch for CabinetApi.updateProfile. */
 @Component({
   selector: 'app-profile-form',
@@ -34,7 +32,6 @@ export class ProfileForm {
   readonly save = output<ProfilePatch>();
 
   protected readonly specialties = [...new Set(SERVICE_CATALOG.map((c) => c.specialty))];
-  protected readonly autoConfirmOptions = AUTO_CONFIRM_OPTIONS;
 
   protected readonly name = linkedSignal(() => this.master().name);
   protected readonly phone = linkedSignal(() => this.master().contacts.phone);
@@ -49,8 +46,6 @@ export class ProfileForm {
   protected readonly viber = linkedSignal(() => this.master().contacts.viber ?? '');
   protected readonly instagram = linkedSignal(() => this.master().contacts.instagram ?? '');
   protected readonly online = linkedSignal(() => this.master().online);
-  protected readonly autoConfirm = linkedSignal(() => this.master().autoConfirm.enabled);
-  protected readonly autoConfirmAfter = linkedSignal(() => this.master().autoConfirm.afterMinutes);
 
   protected readonly submitted = signal(false);
 
@@ -90,7 +85,6 @@ export class ProfileForm {
         instagram: optional(this.instagram()),
       },
       online: this.online(),
-      autoConfirm: { enabled: this.autoConfirm(), afterMinutes: Number(this.autoConfirmAfter()) },
     });
   }
 }

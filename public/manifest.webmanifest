@@ -1,0 +1,11 @@
+{
+  "name": "Мастера рядом",
+  "short_name": "Мастера рядом",
+  "description": "Маникюр и не только — рядом с вами",
+  "lang": "ru",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f7f5f0",
+  "theme_color": "#7b2cf5",
+  "icons": [{ "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

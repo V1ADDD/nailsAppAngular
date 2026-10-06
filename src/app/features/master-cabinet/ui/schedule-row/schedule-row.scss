@@ -1,6 +1,7 @@
 :host {
   display: block;
   min-width: 0;
+  container: row / inline-size;
 }
 
 .row {
@@ -8,9 +9,11 @@
   --row-border: var(--color-border);
   --row-tag: var(--color-text-secondary);
 
-  display: flex;
+  display: grid;
+  grid-template-areas: 'time main tag';
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-1) var(--space-3);
   width: 100%;
   min-height: 4.25rem;
   padding: var(--space-3) var(--space-4);
@@ -61,6 +64,7 @@
   }
 
   &--compact {
+    display: flex;
     justify-content: center;
     min-height: 2.25rem;
     padding: var(--space-1) var(--space-2);
@@ -69,7 +73,7 @@
 }
 
 .row__time {
-  flex-shrink: 0;
+  grid-area: time;
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-bold);
   font-variant-numeric: tabular-nums;
@@ -81,8 +85,8 @@
 
 .row__main {
   display: grid;
-  flex: 1 1 0;
-  min-width: 6rem;
+  grid-area: main;
+  min-width: 0;
 }
 
 .row__name {
@@ -100,8 +104,8 @@
 }
 
 .row__tag {
-  flex: 0 1 auto;
-  max-width: 42%;
+  grid-area: tag;
+  justify-self: end;
   padding: var(--space-1) var(--space-3);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
@@ -110,4 +114,23 @@
   background: var(--color-surface);
   border: 1px solid var(--row-border);
   border-radius: var(--radius-full);
+}
+
+// Narrow rows (phones, week cards): the status goes under the name instead of squeezing it.
+@container row (max-width: 24rem) {
+  .row {
+    grid-template-areas:
+      'time main'
+      'time tag';
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .row__time {
+    align-self: start;
+    padding-top: var(--space-0-5);
+  }
+
+  .row__tag {
+    justify-self: start;
+  }
 }

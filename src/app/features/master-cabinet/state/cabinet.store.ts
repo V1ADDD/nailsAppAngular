@@ -43,6 +43,7 @@ import {
   buildDay,
   buildMonth,
   buildRows,
+  buildBookingList,
   buildWeek,
   byNearestBooking,
   groupByDay,
@@ -50,6 +51,8 @@ import {
   profileCompleteness,
   shiftDate,
 } from './schedule-logic';
+
+export type ListMode = 'upcoming' | 'past';
 
 export type ProfilePatch = Parameters<CabinetApi['updateProfile']>[1];
 
@@ -75,6 +78,9 @@ interface CabinetState {
   stats: Partial<Record<StatsPeriod, CabinetStats>>;
   allMasters: Master[];
   schedulePeriod: SchedulePeriod;
+  /** «Записи» shows the list instead of the calendar. */
+  scheduleList: boolean;
+  listMode: ListMode;
   scheduleDate: string;
   statsPeriod: StatsPeriod;
   clientQuery: string;
@@ -92,6 +98,8 @@ const initialState = (): CabinetState => ({
   stats: {},
   allMasters: [],
   schedulePeriod: 'day',
+  scheduleList: true,
+  listMode: 'upcoming',
   scheduleDate: dayKey(new Date()),
   statsPeriod: 'month',
   clientQuery: '',
@@ -134,6 +142,14 @@ export const CabinetStore = signalStore(
           ).length,
         };
       }),
+      /** «Записи → Список»: bookings grouped by day, upcoming ascending or past descending. */
+      bookingList: computed(() => buildBookingList(rowsByDay(), store.listMode(), new Date())),
+      upcomingCount: computed(
+        () =>
+          [...rowsByDay().values()]
+            .flat()
+            .filter((r) => r.booking && !r.past && r.status !== 'no-show').length,
+      ),
       pendingCount: computed(
         () =>
           store
@@ -303,6 +319,12 @@ export const CabinetStore = signalStore(
         setSchedulePeriod(schedulePeriod: SchedulePeriod): void {
           patchState(store, { schedulePeriod });
         },
+        setScheduleList(scheduleList: boolean): void {
+          patchState(store, { scheduleList });
+        },
+        setListMode(listMode: ListMode): void {
+          patchState(store, { listMode });
+        },
         setScheduleDate(scheduleDate: string): void {
           patchState(store, { scheduleDate });
         },
@@ -313,7 +335,7 @@ export const CabinetStore = signalStore(
         },
         /** Month cell click: open that day. */
         openDay(key: string): void {
-          patchState(store, { scheduleDate: key, schedulePeriod: 'day' });
+          patchState(store, { scheduleDate: key, schedulePeriod: 'day', scheduleList: false });
         },
         setStatsPeriod(statsPeriod: StatsPeriod): void {
           patchState(store, { statsPeriod });
@@ -421,6 +443,10 @@ export const CabinetStore = signalStore(
             },
             done,
           );
+        },
+        /** «Удалить профиль мастера»: the account stays a client account. */
+        deleteMasterProfile(done?: Done<AccountSnapshot>): void {
+          mutate(accountApi.deleteMasterProfile(), () => patchState(store, { master: null }), done);
         },
         /** ТЗ 7.2 «Написать»: one chat per master ↔ client pair; resolves the chat id. */
         openChat(clientId: string, done?: Done<string>): void {

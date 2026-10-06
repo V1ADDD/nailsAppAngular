@@ -32,8 +32,9 @@
 
   &__value {
     font-family: var(--font-family-display);
+    letter-spacing: var(--letter-spacing-display);
     font-size: var(--font-size-2xl);
-    font-weight: var(--font-weight-bold);
+    font-weight: var(--font-weight-extrabold);
     line-height: 1;
   }
 

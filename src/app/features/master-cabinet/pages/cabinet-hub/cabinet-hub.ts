@@ -1,7 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { PORTFOLIO_LIMIT } from '@app/core/data/api';
 import { plural } from '@app/shared/format/plural';
 import { formatAmount } from '@app/shared/format/price';
 import { NBSP } from '@app/shared/format/text';
@@ -80,39 +79,35 @@ export class CabinetHub {
     const pending = this.store.pendingCount();
     const percent = this.store.completeness()?.percent ?? 0;
     const schedule = master?.schedule;
+    const clients = this.store.clients().length;
     const metrics: Record<string, Omit<Tile, keyof CabinetPage>> = {
-      schedule: {
+      profile: {
+        metric: master?.services.length
+          ? `Анкета на ${percent}% · ${VERIFICATION[master.verification].toLowerCase()}`
+          : 'Добавьте услуги и цены',
+        progress: percent,
+        alert: !master?.services.length,
+      },
+      bookings: {
         metric: this.store.errors().schedule
           ? 'Не удалось загрузить'
           : pending
             ? `Ждут подтверждения: ${pending}`
-            : `Сегодня: ${this.todayText().toLowerCase()}`,
+            : `Сегодня: ${this.todayText().toLowerCase()}` +
+              (clients ? ` · ${plural(clients, ['клиент', 'клиента', 'клиентов'])}` : ''),
         alert: pending > 0,
       },
-      clients: {
-        metric: this.store.clients().length
-          ? plural(this.store.clients().length, ['клиент', 'клиента', 'клиентов'])
-          : 'Пока никого',
+      schedule: {
+        metric: schedule
+          ? `${workDaysLabel(schedule.workDays)} · ${schedule.from}–${schedule.to}`
+          : 'Часы работы и перерывы',
       },
-      stats: {
+      income: {
         metric: month
           ? `≈${NBSP}${formatAmount(month.expectedRevenue)} ожидается за месяц`
           : 'Выручка и визиты',
       },
-      services: {
-        metric: master?.services.length
-          ? plural(master.services.length, ['услуга', 'услуги', 'услуг'])
-          : 'Добавьте прайс',
-        alert: !master?.services.length,
-      },
-      settings: {
-        metric: schedule
-          ? `${workDaysLabel(schedule.workDays)} · ${schedule.from}–${schedule.to}`
-          : 'Часы работы',
-      },
-      card: { metric: `Заполнена на ${percent}%`, progress: percent },
-      portfolio: { metric: `${master?.portfolio.length ?? 0} из ${PORTFOLIO_LIMIT} фото` },
-      verification: { metric: VERIFICATION[master?.verification ?? 'none'] },
+      settings: { metric: 'Автоподтверждение, поддержка, удаление' },
     };
     return CABINET_PAGES.map((page) => ({
       ...page,

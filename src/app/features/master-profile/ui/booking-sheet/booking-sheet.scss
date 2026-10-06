@@ -116,3 +116,9 @@
   font-weight: var(--font-weight-semibold);
   opacity: 0.9;
 }
+
+.more {
+  justify-self: start;
+  gap: var(--space-1);
+  color: var(--color-primary);
+}

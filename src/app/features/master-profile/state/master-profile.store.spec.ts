@@ -122,6 +122,19 @@ describe('MasterProfileStore', () => {
     expect(store.releaseAt()).toBeInstanceOf(Date);
   });
 
+  it('focuses the requested service only when the master offers it', () => {
+    const { store } = setup();
+    store.openBooking({ clientId: 'c1', subcategoryId: 'manicure-french' });
+    expect(store.booking().focusSubcategoryId).toBe('manicure-french');
+
+    store.openBooking({ clientId: 'c1', subcategoryId: 'pedicure-spa' });
+    expect(store.booking().subcategoryId).toBeNull();
+    expect(store.booking().focusSubcategoryId).toBeNull();
+
+    store.openBooking({ clientId: 'c1' });
+    expect(store.booking().focusSubcategoryId).toBeNull();
+  });
+
   it('does not select busy slots', () => {
     const { store } = setup();
     store.openBooking({ clientId: 'c1' });

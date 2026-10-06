@@ -11,6 +11,7 @@
 
 .section {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-4);
 }
 
@@ -53,8 +54,9 @@
 
 .section__title {
   font-family: var(--font-family-display);
+  letter-spacing: var(--letter-spacing-display);
   font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
+  font-weight: var(--font-weight-extrabold);
   line-height: var(--line-height-tight);
 }
 

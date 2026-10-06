@@ -70,10 +70,10 @@ const clients = [
   },
 ] as unknown as CabinetClient[];
 
-function setup() {
+function setup(options: { bookings?: BookingView[]; deleteProfile?: jest.Mock } = {}) {
   const bookingsApi = {
     slots: jest.fn(() => of([slot])),
-    forMaster: jest.fn(() => of([] as BookingView[])),
+    forMaster: jest.fn(() => of(options.bookings ?? ([] as BookingView[]))),
     cancel: jest.fn(() => of({ id: 'b1', status: 'cancelled' } as BookingView)),
     addSlot: jest.fn((_m: string, start: string) => of({ ...slot, id: 's0', start })),
     removeSlot: jest.fn(() => of(undefined)),
@@ -95,7 +95,13 @@ function setup() {
       { provide: CabinetApi, useValue: cabinetApi },
       { provide: MastersApi, useValue: mastersApi },
       { provide: ChatsApi, useValue: chatsApi },
-      { provide: AccountApi, useValue: {} },
+      {
+        provide: AccountApi,
+        useValue: {
+          deleteMasterProfile:
+            options.deleteProfile ?? jest.fn(() => of({ account: {}, client: {}, master: null })),
+        },
+      },
     ],
   });
   const store = TestBed.inject(CabinetStore);
@@ -204,5 +210,86 @@ describe('CabinetStore', () => {
     store.openChat('c1', { onSuccess });
     expect(chatsApi.ensureChat).toHaveBeenCalledWith('m1', 'c1');
     expect(onSuccess).toHaveBeenCalledWith('chat-1');
+  });
+
+  describe('bookings list', () => {
+    const at = (offsetMs: number) => new Date(Date.now() + offsetMs).toISOString();
+    const HOUR = 3_600_000;
+    const bk = (id: string, offset: number, status: BookingView['status'] = 'confirmed') =>
+      ({
+        id,
+        masterId: 'm1',
+        start: at(offset),
+        durationMin: 60,
+        status,
+        source: 'site',
+        clientName: 'Алина',
+        serviceName: 'Маникюр',
+      }) as unknown as BookingView;
+    const bookings = [
+      bk('up-1', 30 * HOUR),
+      bk('up-2', 60 * HOUR, 'pending'),
+      bk('past-1', -30 * HOUR, 'completed'),
+      bk('noshow', -50 * HOUR, 'no-show'),
+      bk('cancelled', 40 * HOUR, 'cancelled'),
+    ];
+
+    it('shows the list by default, upcoming first', () => {
+      const { store } = setup();
+      expect(store.scheduleList()).toBe(true);
+      expect(store.listMode()).toBe('upcoming');
+    });
+
+    it('toggles list and calendar, and openDay switches the list off', () => {
+      const { store } = setup();
+      store.setScheduleList(false);
+      expect(store.scheduleList()).toBe(false);
+      store.setScheduleList(true);
+      store.openDay('2026-09-05');
+      expect(store.scheduleList()).toBe(false);
+      expect(store.schedulePeriod()).toBe('day');
+    });
+
+    it('builds the list for the selected mode', () => {
+      const { store } = setup({ bookings });
+      const ids = () => store.bookingList().flatMap((g) => g.rows.map((r) => r.id));
+      expect(ids()).toEqual(['up-1', 'up-2']);
+      store.setListMode('past');
+      expect(ids()).toEqual(['past-1', 'noshow']);
+    });
+
+    it('counts upcoming bookings without cancelled and past ones', () => {
+      const { store } = setup({ bookings });
+      expect(store.upcomingCount()).toBe(2);
+    });
+
+    it('is empty without bookings', () => {
+      const { store } = setup();
+      expect(store.bookingList()).toEqual([]);
+      expect(store.upcomingCount()).toBe(0);
+    });
+  });
+
+  describe('deleteMasterProfile', () => {
+    it('calls the account API, clears the master and reports success', () => {
+      const deleteProfile = jest.fn(() => of({ account: {}, client: {}, master: null }));
+      const { store } = setup({ deleteProfile });
+      const onSuccess = jest.fn();
+      store.deleteMasterProfile({ onSuccess });
+      expect(deleteProfile).toHaveBeenCalledTimes(1);
+      expect(store.master()).toBeNull();
+      expect(onSuccess).toHaveBeenCalled();
+      expect(store.saving()).toBe(false);
+    });
+
+    it('keeps the master and reports an error when the API fails', () => {
+      const deleteProfile = jest.fn(() => throwError(() => new Error('Не удалось')));
+      const { store } = setup({ deleteProfile });
+      const onError = jest.fn();
+      store.deleteMasterProfile({ onError });
+      expect(onError).toHaveBeenCalledWith('Не удалось');
+      expect(store.master()?.id).toBe('m1');
+      expect(store.saving()).toBe(false);
+    });
   });
 });

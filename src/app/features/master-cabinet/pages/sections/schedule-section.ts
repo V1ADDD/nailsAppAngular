@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { type BookingView } from '@app/core/data/api';
 import { SessionStore } from '@app/core/session/session.store';
 import { plural } from '@app/shared/format/plural';
@@ -15,14 +15,24 @@ import {
   neighbourPeriod,
   periodCaption,
 } from '../../state/schedule-logic';
+import { type ListMode } from '../../state/cabinet.store';
+
+export type ScheduleView = 'list' | SchedulePeriod;
+
+const VIEW_TABS: readonly TabOption<ScheduleView>[] = [
+  { value: 'list', label: 'Список' },
+  { value: 'day', label: 'День' },
+  { value: 'week', label: 'Неделя' },
+  { value: 'month', label: 'Месяц' },
+];
 import { BookingSheet, type CancelRequest } from '../../ui/booking-sheet/booking-sheet';
-import { CabinetSection } from '../../ui/cabinet-section/cabinet-section';
 import {
   type ExternalRequest,
   FreeSlotSheet,
   type SiteBookingRequest,
 } from '../../ui/free-slot-sheet/free-slot-sheet';
 import { AddSlotSheet } from '../../ui/add-slot-sheet/add-slot-sheet';
+import { BookingsList } from '../../ui/bookings-list/bookings-list';
 import { ScheduleAgenda } from '../../ui/schedule-views/schedule-agenda';
 import { ScheduleGrid } from '../../ui/schedule-views/schedule-grid';
 import { ScheduleMonth } from '../../ui/schedule-views/schedule-month';
@@ -36,17 +46,17 @@ export const PERIOD_TABS: readonly TabOption<SchedulePeriod>[] = [
 ];
 
 /**
- * «Расписание» (ТЗ 6.1, 6.2, 6.3, 6.8, 7.1): phones get a day agenda / week cards, md+ a
- * time grid like Google Calendar; the month is a calendar everywhere.
+ * «Записи» (ТЗ 6.1, 6.2, 6.3, 6.8, 7.1): a list of upcoming / past bookings by day, or the
+ * calendar — phones get a day agenda / week cards, md+ a time grid like Google Calendar;
+ * the month is a calendar everywhere.
  */
 @Component({
   selector: 'app-schedule-section',
   imports: [
-    CabinetSection,
     Tabs,
     Icon,
     Swipe,
-    RouterLink,
+    BookingsList,
     ScheduleAgenda,
     ScheduleGrid,
     ScheduleWeek,
@@ -65,7 +75,14 @@ export class ScheduleSection {
   private readonly router = inject(Router);
   private readonly feedback = injectCabinetFeedback();
 
-  protected readonly tabs = PERIOD_TABS;
+  protected readonly tabs = VIEW_TABS;
+  protected readonly view = computed<ScheduleView>(() =>
+    this.store.scheduleList() ? 'list' : this.store.schedulePeriod(),
+  );
+  protected readonly listTabs = computed<TabOption<ListMode>[]>(() => [
+    { value: 'upcoming', label: 'Предстоящие', count: this.store.upcomingCount() },
+    { value: 'past', label: 'Прошлые' },
+  ]);
   protected readonly caption = computed(() =>
     periodCaption(this.store.scheduleDate(), this.store.schedulePeriod(), this.store.todayKey()),
   );
@@ -90,8 +107,8 @@ export class ScheduleSection {
 
   /** «3 записи · 1 ждёт · 12 свободных окон» for the visible day / week. */
   protected readonly dayStats = computed(() => {
-    const period = this.store.schedulePeriod();
-    if (period === 'month') return null;
+    const period = this.view();
+    if (period === 'month' || period === 'list') return null;
     const rows = (period === 'day' ? [this.store.dayView()] : this.store.weekView()).flatMap(
       (d) => d.rows,
     );
@@ -118,7 +135,24 @@ export class ScheduleSection {
 
   protected readonly skeletonRows = [1, 2, 3];
 
+  protected setView(view: ScheduleView): void {
+    if (view === 'list') {
+      this.store.setScheduleList(true);
+      return;
+    }
+    this.store.setScheduleList(false);
+    this.store.setSchedulePeriod(view);
+  }
+
   protected swipe(step: number): void {
+    if (this.view() === 'list') {
+      if (step > 0) this.setView('day');
+      return;
+    }
+    if (this.view() === 'day' && step < 0) {
+      this.setView('list');
+      return;
+    }
     this.store.setSchedulePeriod(neighbourPeriod(this.store.schedulePeriod(), step));
   }
 

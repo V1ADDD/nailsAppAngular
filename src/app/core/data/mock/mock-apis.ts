@@ -72,7 +72,9 @@ export class MockMastersApi extends MastersApi {
   private readonly db = inject(MockDb);
 
   list(): Observable<Master[]> {
-    return run(this.db, () => this.db.state.masters);
+    return run(this.db, () =>
+      this.db.state.masters.filter((m) => !this.db.deletedMasters.has(m.id)),
+    );
   }
 
   getById(id: string): Observable<Master> {
@@ -145,6 +147,32 @@ export class MockAccountApi extends AccountApi {
           : [...ids, masterId],
       };
       return this.db.state.account;
+    });
+  }
+
+  deleteMasterProfile(): Observable<AccountSnapshot> {
+    return run(this.db, () => {
+      const account = this.db.state.account;
+      const masterId = account.masterId;
+      if (!masterId) return this.snapshot();
+      const now = this.db.now();
+      for (const b of this.db.state.bookings) {
+        const active = b.status === 'pending' || b.status === 'confirmed';
+        if (b.masterId !== masterId || !active || new Date(b.start) <= now) continue;
+        b.status = 'cancelled';
+        b.cancellation = {
+          by: 'master',
+          reason: 'Мастер удалил профиль',
+          mutual: false,
+          at: now.toISOString(),
+        };
+      }
+      this.db.state.slots = this.db.state.slots.filter(
+        (s) => s.masterId !== masterId || new Date(s.start) <= now,
+      );
+      this.db.deletedMasters.add(masterId);
+      this.db.state.account = { ...account, masterId: null };
+      return this.snapshot();
     });
   }
 

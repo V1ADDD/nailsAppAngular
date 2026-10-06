@@ -77,3 +77,17 @@
     display: inline-flex;
   }
 }
+
+// Small phones: the four pills share the row instead of scrolling out of view.
+@include bp.down(sm) {
+  .nav {
+    gap: var(--space-1-5);
+  }
+
+  .nav__tab {
+    flex: 1 1 auto;
+    justify-content: center;
+    padding-inline: var(--space-2);
+    font-size: var(--font-size-xs);
+  }
+}

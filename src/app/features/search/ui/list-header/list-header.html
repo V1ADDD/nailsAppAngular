@@ -16,21 +16,21 @@
     <button
       type="button"
       class="lh__toggle"
-      [attr.aria-expanded]="expanded()"
+      [class.is-collapsed]="!open()"
+      [attr.aria-expanded]="open()"
+      [attr.aria-label]="label()"
       aria-controls="search-results"
       (pointerdown)="onPointerDown($event)"
+      (pointermove)="onPointerMove($event)"
       (pointerup)="onPointerUp($event)"
       (pointercancel)="onPointerUp($event)"
-      (click)="toggle()"
+      (click)="onClick()"
+      (keydown)="onKeydown($event)"
     >
       <span class="lh__grip" aria-hidden="true"></span>
       <span class="lh__row">
         <ng-container [ngTemplateOutlet]="summary" />
-        <app-icon
-          class="lh__chevron"
-          [name]="expanded() ? 'chevron-down' : 'chevron-up'"
-          [size]="20"
-        />
+        <app-icon class="lh__chevron" [name]="open() ? 'chevron-down' : 'chevron-up'" [size]="20" />
       </span>
     </button>
   </h2>

@@ -3,20 +3,18 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { SessionStore } from '@app/core/session/session.store';
 import { SupportService } from '@app/core/support/support.service';
 import { Avatar } from '@app/shared/ui/avatar/avatar';
+import { Logo } from '@app/shared/ui/logo/logo';
 import { Icon } from '@app/shared/ui/icon/icon';
 import { NAV_ITEMS } from './nav-items';
 
 /** Desktop header (lg+): brand, navigation, support, account. Replaces the tab bar. */
 @Component({
   selector: 'app-top-bar',
-  imports: [RouterLink, RouterLinkActive, Icon, Avatar],
+  imports: [RouterLink, RouterLinkActive, Icon, Avatar, Logo],
   template: `
     <header class="top-bar">
       <a routerLink="/" class="brand" aria-label="Мастера рядом — на главную">
-        <span class="brand__mark" aria-hidden="true">
-          <app-icon name="sparkles" [size]="18" />
-        </span>
-        <span class="brand__name">Мастера рядом</span>
+        <app-logo [size]="32" />
       </a>
       <nav class="top-bar__nav" aria-label="Основная навигация">
         @for (item of items; track item.path) {

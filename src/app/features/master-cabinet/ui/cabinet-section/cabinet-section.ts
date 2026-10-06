@@ -18,7 +18,7 @@ import { cabinetPage } from '../../state/cabinet-pages';
           <app-icon name="arrow-left" [size]="20" />
         </a>
         <span class="section__icon" [class]="'tint--' + tint()" aria-hidden="true">
-          <app-icon [name]="icon()" [size]="22" />
+          <app-icon [name]="iconName()" [size]="22" />
         </span>
         <h2 class="section__title" [id]="sectionId() + '-title'">{{ title() }}</h2>
         @if (badge()) {
@@ -37,9 +37,11 @@ import { cabinetPage } from '../../state/cabinet-pages';
 export class CabinetSection {
   readonly sectionId = input.required<string>();
   readonly title = input.required<string>();
-  readonly icon = input.required<IconName>();
+  /** Defaults to the cabinet page icon of the section. */
+  readonly icon = input<IconName | null>(null);
   /** Short summary next to the title (e.g. «3 из 9»). */
   readonly badge = input<string | null>(null);
 
   protected readonly tint = computed(() => cabinetPage(this.sectionId()).tint);
+  protected readonly iconName = computed(() => this.icon() ?? cabinetPage(this.sectionId()).icon);
 }

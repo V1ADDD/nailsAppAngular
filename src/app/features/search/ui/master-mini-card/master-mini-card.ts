@@ -4,7 +4,7 @@ import { formatDistance } from '@app/core/data/rules';
 import { PricePipe } from '@app/shared/format/price';
 import { Avatar } from '@app/shared/ui/avatar/avatar';
 import { Icon } from '@app/shared/ui/icon/icon';
-import { type MasterResult } from '../../state/search-logic';
+import { type MasterResult, preselectedService } from '../../state/search-logic';
 
 /** Compact card of the collapsed mobile carousel (design 01): photo, name, specialty, price. */
 @Component({
@@ -12,7 +12,12 @@ import { type MasterResult } from '../../state/search-logic';
   imports: [RouterLink, Avatar, Icon, PricePipe],
   template: `
     @let m = result().master;
-    <a class="mini" [class.mini--active]="active()" [routerLink]="['/masters', m.id]">
+    <a
+      class="mini"
+      [class.mini--active]="active()"
+      [routerLink]="['/masters', m.id]"
+      [queryParams]="{ service: serviceId() }"
+    >
       <app-avatar
         [name]="m.name"
         [src]="m.photoUrl"
@@ -94,4 +99,6 @@ export class MasterMiniCard {
   readonly active = input(false);
 
   protected readonly distance = computed(() => formatDistance(this.result().distanceKm));
+  /** The filtered service travels to the profile so «Записаться» preselects it. */
+  protected readonly serviceId = computed(() => preselectedService(this.result()));
 }

@@ -41,19 +41,15 @@
         (focusin)="hover.emit(r.master.id)"
         (focusout)="hover.emit(null)"
       >
-        @if (layout() === 'carousel') {
-          <app-master-mini-card [result]="r" [active]="r.master.id === selectedId()" />
-        } @else {
-          <app-master-card
-            [result]="r"
-            [active]="r.master.id === selectedId()"
-            [favorite]="favoriteIds().has(r.master.id)"
-            [own]="r.master.id === ownId()"
-            (book)="book.emit({ masterId: r.master.id, subcategoryId: $event })"
-            (write)="write.emit(r.master.id)"
-            (favoriteToggle)="favorite.emit(r.master.id)"
-          />
-        }
+        <app-master-card
+          [result]="r"
+          [active]="r.master.id === selectedId()"
+          [favorite]="favoriteIds().has(r.master.id)"
+          [own]="r.master.id === ownId()"
+          (book)="book.emit({ masterId: r.master.id, subcategoryId: $event })"
+          (write)="write.emit(r.master.id)"
+          (favoriteToggle)="favorite.emit(r.master.id)"
+        />
       </li>
     }
   </ul>

@@ -10,7 +10,12 @@
     />
     <div class="mc__info">
       <h3 class="mc__name">
-        <a class="mc__link" [routerLink]="['/masters', m.id]">{{ m.name }}</a>
+        <a
+          class="mc__link"
+          [routerLink]="['/masters', m.id]"
+          [queryParams]="{ service: serviceId() }"
+          >{{ m.name }}</a
+        >
         @if (m.verification === 'verified') {
           <app-icon
             class="mc__verified"

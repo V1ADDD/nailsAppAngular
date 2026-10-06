@@ -4,6 +4,7 @@
 
 .booking {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-3);
   height: 100%;
   padding: var(--space-4) var(--space-5);
@@ -14,13 +15,14 @@
 
 .booking__main {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   gap: var(--space-4);
 }
 
 .booking__info {
   display: grid;
-  flex: 1;
+  flex: 1 1 11rem;
   gap: var(--space-0-5);
   min-width: 0;
 }

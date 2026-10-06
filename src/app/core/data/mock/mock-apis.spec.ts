@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { type Observable, firstValueFrom } from 'rxjs';
-import { BookingsApi, CabinetApi, ChatsApi, MastersApi } from '../api';
+import { AccountApi, BookingsApi, CabinetApi, ChatsApi, MastersApi } from '../api';
 import { ME_CLIENT_ID } from '../fixtures/seed';
 import { type ScheduleTemplate } from '../models';
 import { expectedRevenue } from '../rules';
@@ -16,6 +16,7 @@ describe('mock backend', () => {
   let chats: ChatsApi;
   let masters: MastersApi;
   let cabinet: CabinetApi;
+  let account: AccountApi;
   let db: MockDb;
 
   beforeEach(() => {
@@ -28,6 +29,7 @@ describe('mock backend', () => {
     chats = TestBed.inject(ChatsApi);
     masters = TestBed.inject(MastersApi);
     cabinet = TestBed.inject(CabinetApi);
+    account = TestBed.inject(AccountApi);
     db = TestBed.inject(MockDb);
   });
 
@@ -214,6 +216,73 @@ describe('mock backend', () => {
       db.state.bookings = db.state.bookings.filter((b) => b.masterId !== 'm-anna-serova');
       const stats = await resolve(cabinet.stats('m-anna-serova', 'week'));
       expect(stats).toMatchObject({ upcoming: 0, expectedRevenue: 0, expectedByService: [] });
+    });
+  });
+
+  describe('deleteMasterProfile', () => {
+    const iso = (offsetMs: number) => new Date(NOW.getTime() + offsetMs).toISOString();
+    const own = () => db.state.account.masterId as string;
+
+    it('detaches the master from the account and hides it from the list', async () => {
+      const id = own();
+      expect(id).toBeTruthy();
+      const snapshot = await resolve(account.deleteMasterProfile());
+      expect(snapshot.master).toBeNull();
+      expect(snapshot.account.masterId).toBeNull();
+      expect(db.state.account.masterId).toBeNull();
+      const list = await resolve(masters.list());
+      expect(list.some((m) => m.id === id)).toBe(false);
+    });
+
+    it('cancels future pending and confirmed bookings with a reason, keeps past ones', async () => {
+      const id = own();
+      const base = db.state.bookings.find((b) => b.masterId === id)!;
+      const mk = (bid: string, status: typeof base.status, start: string) => ({
+        ...base,
+        id: bid,
+        status,
+        start,
+        cancellation: undefined,
+      });
+      db.state.bookings.push(
+        mk('x-future-confirmed', 'confirmed', iso(86_400_000 * 2)),
+        mk('x-future-pending', 'pending', iso(86_400_000 * 3)),
+        mk('x-past-completed', 'completed', iso(-86_400_000 * 2)),
+        mk('x-past-confirmed', 'confirmed', iso(-3_600_000 * 5)),
+      );
+      await resolve(account.deleteMasterProfile());
+      const get = (bid: string) => db.state.bookings.find((b) => b.id === bid)!;
+      for (const bid of ['x-future-confirmed', 'x-future-pending']) {
+        expect(get(bid).status).toBe('cancelled');
+        expect(get(bid).cancellation).toMatchObject({
+          by: 'master',
+          reason: 'Мастер удалил профиль',
+        });
+      }
+      expect(get('x-past-completed').status).toBe('completed');
+      expect(get('x-past-confirmed').status).not.toBe('cancelled');
+      expect(get('x-past-confirmed').cancellation).toBeUndefined();
+    });
+
+    it('removes future slots only, and does not touch other masters', async () => {
+      const id = own();
+      const otherSlots = db.state.slots.filter((s) => s.masterId !== id).length;
+      const past = db.state.slots.filter(
+        (s) => s.masterId === id && new Date(s.start) <= NOW,
+      ).length;
+      await resolve(account.deleteMasterProfile());
+      const mine = db.state.slots.filter((s) => s.masterId === id);
+      expect(mine.every((s) => new Date(s.start) <= NOW)).toBe(true);
+      expect(mine).toHaveLength(past);
+      expect(db.state.slots.filter((s) => s.masterId !== id)).toHaveLength(otherSlots);
+    });
+
+    it('is a no-op when the account has no master profile', async () => {
+      await resolve(account.deleteMasterProfile());
+      const before = db.state.bookings.map((b) => b.status);
+      const snapshot = await resolve(account.deleteMasterProfile());
+      expect(snapshot.master).toBeNull();
+      expect(db.state.bookings.map((b) => b.status)).toEqual(before);
     });
   });
 });

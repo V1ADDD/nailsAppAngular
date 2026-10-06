@@ -1,6 +1,14 @@
-import { type Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router, type Routes } from '@angular/router';
 
-/** /profile/master: hub + one page per cabinet section, sharing the shell's CabinetStore. */
+/** Old one-page-per-block path → its section tab (string redirects drop query params). */
+const toTab = (section: string, tab: string) => () =>
+  inject(Router).createUrlTree(['/profile/master', section], { queryParams: { tab } });
+
+/**
+ * /profile/master: hub + five sections sharing the shell's CabinetStore. Tabs inside a
+ * section are `?tab=`; the old one-page-per-block paths redirect to their tab.
+ */
 export default [
   {
     path: '',
@@ -12,51 +20,39 @@ export default [
         loadComponent: () => import('./pages/cabinet-hub/cabinet-hub').then((m) => m.CabinetHub),
       },
       {
+        path: 'profile',
+        title: 'Профиль мастера',
+        loadComponent: () => import('./pages/profile-page').then((m) => m.ProfilePage),
+      },
+      {
+        path: 'bookings',
+        title: 'Записи',
+        loadComponent: () => import('./pages/bookings-page').then((m) => m.BookingsPage),
+      },
+      {
         path: 'schedule',
-        title: 'Расписание',
-        loadComponent: () =>
-          import('./pages/sections/schedule-section').then((m) => m.ScheduleSection),
+        title: 'График',
+        loadComponent: () => import('./pages/work-page').then((m) => m.WorkPage),
       },
       {
-        path: 'clients',
-        title: 'Клиенты',
-        loadComponent: () =>
-          import('./pages/sections/clients-section').then((m) => m.ClientsSection),
-      },
-      {
-        path: 'stats',
-        title: 'Статистика',
-        loadComponent: () => import('./pages/sections/stats-section').then((m) => m.StatsSection),
-      },
-      {
-        path: 'services',
-        title: 'Услуги и цены',
-        loadComponent: () =>
-          import('./pages/sections/services-section').then((m) => m.ServicesSection),
+        path: 'income',
+        title: 'Доходы',
+        loadComponent: () => import('./pages/income-page').then((m) => m.IncomePage),
       },
       {
         path: 'settings',
-        title: 'Рабочий график',
+        title: 'Настройки',
         loadComponent: () =>
-          import('./pages/sections/settings-section').then((m) => m.SettingsSection),
+          import('./pages/cabinet-settings-page/cabinet-settings-page').then(
+            (m) => m.CabinetSettingsPage,
+          ),
       },
-      {
-        path: 'card',
-        title: 'Моя карточка',
-        loadComponent: () => import('./pages/sections/card-section').then((m) => m.CardSection),
-      },
-      {
-        path: 'portfolio',
-        title: 'Портфолио',
-        loadComponent: () =>
-          import('./pages/sections/portfolio-section').then((m) => m.PortfolioSection),
-      },
-      {
-        path: 'verification',
-        title: 'Верификация',
-        loadComponent: () =>
-          import('./pages/sections/verification-section').then((m) => m.VerificationSection),
-      },
+      { path: 'card', redirectTo: 'profile' },
+      { path: 'services', redirectTo: toTab('profile', 'services') },
+      { path: 'portfolio', redirectTo: toTab('profile', 'portfolio') },
+      { path: 'verification', redirectTo: 'profile' },
+      { path: 'clients', redirectTo: toTab('bookings', 'clients') },
+      { path: 'stats', redirectTo: 'income' },
       { path: '**', redirectTo: '' },
     ],
   },

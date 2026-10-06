@@ -27,9 +27,9 @@ export interface MapPin {
   online: boolean;
 }
 
-// OpenStreetMap standard tiles: free, no key, good Belarus coverage. Toned down to the
-// design's warm palette by the `.leaflet-tile-pane` filter in styles/_map.scss.
-// For production traffic switch to a hosted provider (OSM tile usage policy).
+// OpenStreetMap standard tiles: free, no key, good Belarus coverage. CARTO raster basemaps now
+// require an API key, so the calm look comes from the `.leaflet-tile-pane` filter in
+// styles/_map.scss. For production traffic switch to a hosted provider (OSM usage policy).
 const TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
 const START_ZOOM = 13;
@@ -108,6 +108,7 @@ export class SearchMap {
     const { lat, lng } = this.center();
     const map = L.map(this.container().nativeElement, {
       zoomControl: false,
+      attributionControl: false,
       minZoom: MIN_ZOOM,
       maxZoom: MAX_ZOOM,
     }).setView([lat, lng], START_ZOOM);
@@ -115,10 +116,11 @@ export class SearchMap {
       attribution: ATTRIBUTION,
       maxZoom: MAX_ZOOM,
     }).addTo(map);
+    L.control.attribution({ position: 'bottomright', prefix: false }).addTo(map);
     L.marker([lat, lng], {
       icon: L.divIcon({
         className: 'map-marker',
-        html: '<div class="map-user"></div>',
+        html: '<div class="map-user" aria-hidden="true"><span class="map-user__pulse"></span></div>',
         iconSize: [0, 0],
       }),
       interactive: false,
@@ -182,7 +184,7 @@ export class SearchMap {
         const latLng = map.containerPointToLatLng([cluster.x, cluster.y]);
         const count = cluster.items.length;
         this.addMarker(layer, latLng, {
-          html: `<div class="map-cluster">${count}</div>`,
+          html: `<div class="map-cluster${count >= 10 ? ' map-cluster--big' : ''}">${count}</div>`,
           label: `${plural(count, ['мастер', 'мастера', 'мастеров'])} рядом, приблизить`,
           zIndexOffset: 500,
           onClick: () => this.zoomTo(cluster.items),
