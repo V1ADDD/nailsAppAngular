@@ -13,3 +13,10 @@ $breakpoints: (
     @content;
   }
 }
+
+// Below a breakpoint (rare: prefer mobile-first `up`). Usage: @include bp.down(sm) { ... }
+@mixin down($name) {
+  @media (max-width: map.get($breakpoints, $name) - 0.02px) {
+    @content;
+  }
+}

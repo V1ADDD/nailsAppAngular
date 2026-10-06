@@ -18,6 +18,7 @@
   justify-items: center;
   gap: var(--space-2);
   width: calc(100% + var(--space-8));
+  min-height: var(--tap-target);
   margin: 0 calc(var(--space-4) * -1);
   padding: var(--space-2) var(--space-4) 0;
   font-weight: inherit;
@@ -93,4 +94,57 @@
   border: none;
   outline: none;
   cursor: pointer;
+}
+
+.lh__toggle:focus-visible {
+  outline-offset: -2px;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+}
+
+.lh__grip {
+  transition: background var(--transition-base);
+}
+
+// Collapsed: gently invite the user to pull the sheet up (a few loops, then rest).
+.is-collapsed {
+  .lh__grip {
+    background: var(--color-primary);
+    animation: lh-grip 2.4s ease-in-out 1.2s 4;
+  }
+
+  .lh__chevron {
+    color: var(--color-primary);
+    animation: lh-nudge 2.4s ease-in-out 1.2s 4;
+  }
+}
+
+@keyframes lh-nudge {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+  }
+
+  30% {
+    transform: translateY(calc(var(--space-1) * -1));
+  }
+}
+
+@keyframes lh-grip {
+  0%,
+  60%,
+  100% {
+    transform: scaleX(1);
+  }
+
+  30% {
+    transform: scaleX(1.25);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .is-collapsed .lh__grip,
+  .is-collapsed .lh__chevron {
+    animation: none;
+  }
 }

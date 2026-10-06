@@ -134,25 +134,11 @@
   </fieldset>
 
   <fieldset class="form__group">
-    <legend class="field__label">Статус и записи</legend>
+    <legend class="field__label">Статус</legend>
     <label class="switch">
       <span>Показывать статус «онлайн»</span>
       <input type="checkbox" role="switch" name="online" [(ngModel)]="online" />
     </label>
-    <label class="switch">
-      <span>Автоподтверждение записей</span>
-      <input type="checkbox" role="switch" name="autoConfirm" [(ngModel)]="autoConfirm" />
-    </label>
-    @if (autoConfirm()) {
-      <label class="field">
-        <span class="field__hint">Подтверждать автоматически через</span>
-        <select class="input" name="autoConfirmAfter" [(ngModel)]="autoConfirmAfter">
-          @for (minutes of autoConfirmOptions; track minutes) {
-            <option [ngValue]="minutes">{{ minutes }} мин</option>
-          }
-        </select>
-      </label>
-    }
   </fieldset>
 
   <button type="submit" class="btn btn--gradient btn--lg btn--block" [disabled]="saving()">

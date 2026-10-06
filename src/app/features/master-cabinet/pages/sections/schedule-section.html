@@ -1,21 +1,34 @@
-<app-cabinet-section sectionId="schedule" title="Расписание" icon="calendar">
-  <ng-container actions>
-    <a class="btn btn--ghost btn--sm" routerLink="../settings">
-      <app-icon name="sliders-horizontal" [size]="16" /> Рабочий график
-    </a>
-    <button type="button" class="btn btn--outline btn--sm" (click)="addOpen.set(true)">
-      <app-icon name="plus" [size]="16" /> Окно
+<div class="schedule">
+  <div class="schedule__bar">
+    <app-tabs
+      class="schedule__views"
+      label="Вид записей"
+      [stretch]="true"
+      [tabs]="tabs"
+      [value]="view()"
+      (valueChange)="setView($event)"
+    />
+    <button
+      type="button"
+      class="btn btn--outline btn--sm schedule__add"
+      aria-label="Добавить окно"
+      (click)="addOpen.set(true)"
+    >
+      <app-icon name="plus" [size]="18" />
+      <span class="schedule__add-text">Окно</span>
     </button>
-  </ng-container>
+  </div>
 
-  <div class="schedule">
+  @if (view() === 'list') {
+    <app-tabs
+      variant="underline"
+      label="Какие записи показать"
+      [tabs]="listTabs()"
+      [value]="store.listMode()"
+      (valueChange)="store.setListMode($event)"
+    />
+  } @else {
     <div class="schedule__bar">
-      <app-tabs
-        label="Период расписания"
-        [tabs]="tabs"
-        [value]="store.schedulePeriod()"
-        (valueChange)="store.setSchedulePeriod($event)"
-      />
       <div class="schedule__nav">
         <button
           type="button"
@@ -56,71 +69,78 @@
         }
       </p>
     }
+  }
 
-    <!-- Stop the profile shell's own «Клиент | Мастер» swipe from reacting to this area. -->
-    <div
-      class="schedule__area"
-      appSwipe
-      (swipeLeft)="swipe(1)"
-      (swipeRight)="swipe(-1)"
-      (pointerdown)="$event.stopPropagation()"
-      (pointerup)="$event.stopPropagation()"
-    >
-      @if (store.loading().schedule && !store.slots().length) {
-        <div class="schedule__skeleton" aria-busy="true" aria-label="Загружаем расписание">
-          @for (i of skeletonRows; track i) {
-            <div class="skeleton schedule__skeleton-row"></div>
-          }
-        </div>
-      } @else if (store.errors().schedule; as error) {
-        <div class="empty-state" role="alert">
-          <p class="empty-state__title">Не удалось загрузить расписание</p>
-          <p>{{ error }}</p>
-          <button type="button" class="btn btn--outline btn--sm" (click)="store.retry('schedule')">
-            Повторить
-          </button>
-        </div>
-      } @else {
-        @switch (store.schedulePeriod()) {
-          @case ('day') {
-            @if (wide()) {
-              <app-schedule-grid
-                [days]="[store.dayView()]"
-                [bounds]="dayBounds()"
-                [todayKey]="store.todayKey()"
-                (pick)="open($event)"
-                (openDay)="store.openDay($event)"
-              />
-            } @else {
-              <app-schedule-agenda [rows]="store.dayView().rows" (pick)="open($event)" />
-            }
-          }
-          @case ('week') {
-            @if (wide()) {
-              <app-schedule-grid
-                [days]="store.weekView()"
-                [bounds]="weekBounds()"
-                [todayKey]="store.todayKey()"
-                (pick)="open($event)"
-                (openDay)="store.openDay($event)"
-              />
-            } @else {
-              <app-schedule-week
-                [days]="store.weekView()"
-                [todayKey]="store.todayKey()"
-                (pick)="open($event)"
-                (openDay)="store.openDay($event)"
-              />
-            }
-          }
-          @case ('month') {
-            <app-schedule-month [weeks]="store.monthView()" (openDay)="store.openDay($event)" />
+  <!-- Stop the profile shell's own «Клиент | Мастер» swipe from reacting to this area. -->
+  <div
+    class="schedule__area"
+    appSwipe
+    (swipeLeft)="swipe(1)"
+    (swipeRight)="swipe(-1)"
+    (pointerdown)="$event.stopPropagation()"
+    (pointerup)="$event.stopPropagation()"
+  >
+    @if (store.loading().schedule && !store.slots().length) {
+      <div class="schedule__skeleton" aria-busy="true" aria-label="Загружаем расписание">
+        @for (i of skeletonRows; track i) {
+          <div class="skeleton schedule__skeleton-row"></div>
+        }
+      </div>
+    } @else if (store.errors().schedule; as error) {
+      <div class="empty-state" role="alert">
+        <p class="empty-state__title">Не удалось загрузить расписание</p>
+        <p>{{ error }}</p>
+        <button type="button" class="btn btn--outline btn--sm" (click)="store.retry('schedule')">
+          Повторить
+        </button>
+      </div>
+    } @else {
+      @switch (view()) {
+        @case ('list') {
+          <app-bookings-list
+            [groups]="store.bookingList()"
+            [past]="store.listMode() === 'past'"
+            (pick)="open($event)"
+          />
+        }
+        @case ('day') {
+          @if (wide()) {
+            <app-schedule-grid
+              [days]="[store.dayView()]"
+              [bounds]="dayBounds()"
+              [todayKey]="store.todayKey()"
+              (pick)="open($event)"
+              (openDay)="store.openDay($event)"
+            />
+          } @else {
+            <app-schedule-agenda [rows]="store.dayView().rows" (pick)="open($event)" />
           }
         }
+        @case ('week') {
+          @if (wide()) {
+            <app-schedule-grid
+              [days]="store.weekView()"
+              [bounds]="weekBounds()"
+              [todayKey]="store.todayKey()"
+              (pick)="open($event)"
+              (openDay)="store.openDay($event)"
+            />
+          } @else {
+            <app-schedule-week
+              [days]="store.weekView()"
+              [todayKey]="store.todayKey()"
+              (pick)="open($event)"
+              (openDay)="store.openDay($event)"
+            />
+          }
+        }
+        @case ('month') {
+          <app-schedule-month [weeks]="store.monthView()" (openDay)="store.openDay($event)" />
+        }
       }
-    </div>
+    }
   </div>
-</app-cabinet-section>
+</div>
 
 <app-booking-sheet
   [(open)]="bookingOpen"

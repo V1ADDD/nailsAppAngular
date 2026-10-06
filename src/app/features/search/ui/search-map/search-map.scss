@@ -13,38 +13,27 @@
   z-index: 0;
 }
 
-// Design 01: «+» top-left. From md the list panel covers the left side, so move right.
+// Phone: floating round buttons bottom-right, above the collapsed results sheet
+// (the page sets --map-inset-bottom). From md the list panel is on the left, so they
+// move to the top-right corner.
 .controls {
   position: absolute;
-  top: var(--space-4);
-  left: var(--space-4);
+  right: var(--space-4);
+  bottom: var(--map-inset-bottom, var(--space-4));
   z-index: var(--z-map-controls);
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-3);
+  transition: bottom var(--transition-slow);
 
   @include bp.up(md) {
-    right: var(--space-4);
-    left: auto;
+    top: var(--space-4);
+    bottom: auto;
   }
-}
-
-.controls__group,
-.controls__btn--single {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
 }
 
 .controls__group {
   display: grid;
-  overflow: hidden;
-}
-
-.controls__divider {
-  height: 1px;
-  margin: 0 var(--space-2);
-  background: var(--color-border);
+  gap: var(--space-2);
 }
 
 .controls__btn {
@@ -55,19 +44,25 @@
   height: var(--tap-target);
   color: var(--color-text);
   background: var(--color-surface);
-  border: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-md);
+  transition:
+    transform var(--transition-fast),
+    color var(--transition-fast);
 
   &:hover:not(:disabled) {
     color: var(--color-primary);
   }
 
+  &:active:not(:disabled) {
+    transform: scale(0.94);
+  }
+
   &:disabled {
     cursor: not-allowed;
     color: var(--color-text-muted);
-  }
-
-  &:focus-visible {
-    outline-offset: -2px;
+    box-shadow: none;
   }
 
   &--single {

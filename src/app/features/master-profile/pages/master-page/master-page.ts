@@ -54,7 +54,10 @@ export class MasterPage {
   readonly id = input.required<string>();
   /** Query `?book=1` opens the booking sheet. */
   readonly book = input<string>();
-  /** Query `&service=<subcategoryId>` preselects a service. */
+  /**
+   * Query `service=<subcategoryId>` (from a search filtered by a service) preselects it for
+   * booking; with `book=1` it is consumed on open, otherwise it stays for «Записаться».
+   */
   readonly service = input<string>();
 
   protected readonly store = inject(MasterProfileStore);
@@ -106,8 +109,10 @@ export class MasterPage {
     else void this.router.navigateByUrl('/');
   }
 
-  protected startBooking(subcategoryId: string | null = null, slotId: string | null = null): void {
+  protected startBooking(requested: string | null = null, slotId: string | null = null): void {
     if (this.own()) return;
+    // Came from a search filtered by a service (`?service=`): book exactly that one.
+    const subcategoryId = requested ?? this.service() ?? null;
     if (this.session.isGuest()) {
       this.toLogin(true, subcategoryId);
       return;

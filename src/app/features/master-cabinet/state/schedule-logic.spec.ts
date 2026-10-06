@@ -3,6 +3,7 @@ import { type Master, type Slot } from '@app/core/data/models';
 import {
   addDaysToKey,
   buildAgenda,
+  buildBookingList,
   buildMonth,
   buildRows,
   byNearestBooking,
@@ -404,5 +405,60 @@ describe('buildMonth items and more', () => {
       .flat()
       .find((c) => c.key === '2026-08-10')!;
     expect(cell).toMatchObject({ items: [], more: 0 });
+  });
+});
+
+describe('buildBookingList', () => {
+  const slots = [
+    slot({ id: 's-free-future', start: '2026-08-27T15:00:00.000Z' }),
+    slot({ id: 's-free-past', start: '2026-08-26T07:00:00.000Z' }),
+  ];
+  const bookings = [
+    booking({ id: 'b-today-late', start: '2026-08-27T14:00:00.000Z' }),
+    booking({ id: 'b-today-early', start: '2026-08-27T11:00:00.000Z', status: 'pending' }),
+    booking({ id: 'b-sep', start: '2026-09-02T07:00:00.000Z' }),
+    booking({ id: 'b-tomorrow', start: '2026-08-28T07:00:00.000Z' }),
+    booking({ id: 'b-past-1', start: '2026-08-20T07:00:00.000Z', status: 'completed' }),
+    booking({ id: 'b-past-2', start: '2026-08-26T08:00:00.000Z', status: 'no-show' }),
+    booking({ id: 'b-past-3', start: '2026-08-26T10:00:00.000Z', status: 'completed' }),
+    booking({ id: 'b-old-july', start: '2026-07-30T07:00:00.000Z', status: 'completed' }),
+    booking({ id: 'b-cancelled', start: '2026-08-29T07:00:00.000Z', status: 'cancelled' }),
+  ];
+  const byDay = groupByDay(buildRows(slots, bookings, NOW));
+
+  it('lists upcoming bookings ascending, grouped per day, without free rows', () => {
+    const groups = buildBookingList(byDay, 'upcoming', NOW);
+    expect(groups.map((g) => g.key)).toEqual(['2026-08-27', '2026-08-28', '2026-09-02']);
+    expect(groups[0]!.rows.map((r) => r.id)).toEqual(['b-today-early', 'b-today-late']);
+    expect(groups.flatMap((g) => g.rows).every((r) => r.booking)).toBe(true);
+    expect(groups.flatMap((g) => g.rows.map((r) => r.id))).not.toContain('s-free-future');
+  });
+
+  it('lists past bookings descending (latest day first, latest row first)', () => {
+    const groups = buildBookingList(byDay, 'past', NOW);
+    expect(groups.map((g) => g.key)).toEqual(['2026-08-26', '2026-08-20', '2026-07-30']);
+    expect(groups[0]!.rows.map((r) => r.id)).toEqual(['b-past-3', 'b-past-2']);
+  });
+
+  it('captions days relative to today and carries the month for dividers', () => {
+    const groups = buildBookingList(byDay, 'upcoming', NOW);
+    expect(groups.map((g) => g.caption)).toEqual([
+      'Сегодня, 27 авг',
+      'Завтра, 28 авг',
+      'ср, 2 сен',
+    ]);
+    expect(groups.map((g) => g.month.toLowerCase())).toEqual([
+      'август 2026',
+      'август 2026',
+      'сентябрь 2026',
+    ]);
+  });
+
+  it('returns an empty list when there are no bookings in the mode', () => {
+    expect(buildBookingList(new Map(), 'upcoming', NOW)).toEqual([]);
+    const onlyFuture = groupByDay(
+      buildRows([], [booking({ id: 'f', start: '2026-09-01T07:00:00.000Z' })], NOW),
+    );
+    expect(buildBookingList(onlyFuture, 'past', NOW)).toEqual([]);
   });
 });

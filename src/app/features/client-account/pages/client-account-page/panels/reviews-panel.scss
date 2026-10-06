@@ -1,0 +1,32 @@
+@use 'styles/breakpoints' as bp;
+@use 'panel';
+
+@include panel.list(xl);
+
+:host {
+  display: grid;
+  align-content: start;
+
+  @include bp.up(md) {
+    gap: var(--space-4);
+  }
+}
+
+.reviews__tabs {
+  background: var(--color-surface);
+
+  @include bp.up(md) {
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-bottom: none;
+    border-radius: var(--radius-lg);
+  }
+}
+
+.reviews__body {
+  padding: var(--space-4);
+
+  @include bp.up(md) {
+    padding: 0;
+  }
+}

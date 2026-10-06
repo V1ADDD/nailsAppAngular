@@ -2,7 +2,9 @@
 // over the DevTools protocol and saves screenshots of key routes at phone/tablet/desktop sizes.
 //
 //   npm run build -- --configuration development
-//   node scripts/screenshots.mjs [--only=map,chat] [--viewport=phone|tablet|desktop] [--out=screenshots]
+//   node scripts/screenshots.mjs [--only=map,chat] [--viewport=phone|small|tablet|desktop] [--out=screenshots]
+//   --full    capture the whole scrollable page, not just the first screen
+//   --audit   print elements that stick out of the viewport or of their .card (layout bugs)
 //
 // Compare the phone shots with design/*.png.
 import { spawn } from 'node:child_process';
@@ -30,6 +32,7 @@ const BROWSERS = [
 
 const VIEWPORTS = {
   phone: { width: 390, height: 844, mobile: true, scale: 2 },
+  small: { width: 360, height: 740, mobile: true, scale: 2 },
   tablet: { width: 820, height: 1180, mobile: true, scale: 1 },
   desktop: { width: 1440, height: 900, mobile: false, scale: 1 },
 };
@@ -47,11 +50,80 @@ const SHOTS = [
   { name: 'client-reviews', path: '/profile/client/reviews', auth: true },
   { name: 'client-settings', path: '/profile/client/settings', auth: true },
   { name: 'master-cabinet', path: '/profile/master', auth: true, role: 'master' },
+  { name: 'cabinet-profile', path: '/profile/master/profile', auth: true, role: 'master' },
+  {
+    name: 'cabinet-services',
+    path: '/profile/master/profile?tab=services',
+    auth: true,
+    role: 'master',
+  },
+  {
+    name: 'cabinet-portfolio',
+    path: '/profile/master/profile?tab=portfolio',
+    auth: true,
+    role: 'master',
+  },
+  {
+    name: 'cabinet-verification',
+    path: '/profile/master/profile?tab=verification',
+    auth: true,
+    role: 'master',
+  },
+  {
+    name: 'cabinet-clients',
+    path: '/profile/master/bookings?tab=clients',
+    auth: true,
+    role: 'master',
+  },
+  { name: 'cabinet-bookings', path: '/profile/master/bookings', auth: true, role: 'master' },
   { name: 'cabinet-schedule', path: '/profile/master/schedule', auth: true, role: 'master' },
+  { name: 'cabinet-income', path: '/profile/master/income', auth: true, role: 'master' },
   { name: 'cabinet-settings', path: '/profile/master/settings', auth: true, role: 'master' },
-  { name: 'cabinet-stats', path: '/profile/master/stats', auth: true, role: 'master' },
   { name: 'login', path: '/login', auth: false },
 ];
+
+/** In-page check: elements outside the viewport or wider than their .card, unless clipped. */
+const AUDIT = `(() => {
+  const W = __WIDTH__;
+  const clipped = (el) => {
+    for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+      if (getComputedStyle(p).overflowX !== 'visible') return true;
+    }
+    return false;
+  };
+  const name = (el) => {
+    let host = el;
+    while (host && !host.tagName.includes('-')) host = host.parentElement;
+    const cls = typeof el.className === 'string' && el.className.trim()
+      ? '.' + el.className.trim().split(/ +/).slice(0, 2).join('.')
+      : '';
+    return (host ? host.tagName.toLowerCase() + ' > ' : '') + el.tagName.toLowerCase() + cls;
+  };
+  const hits = [];
+  for (const el of document.querySelectorAll('body *')) {
+    const r = el.getBoundingClientRect();
+    if (!r.width || !r.height || getComputedStyle(el).position === 'fixed' || clipped(el)) continue;
+    let why = '';
+    if (r.right > W + 1 || r.left < -1) why = 'viewport ' + Math.round(r.left) + '..' + Math.round(r.right);
+    const card = el.parentElement && el.parentElement.closest('.card');
+    if (!why && card) {
+      const c = card.getBoundingClientRect();
+      if (r.right > c.right + 1 || r.left < c.left - 1) why = 'card +' + Math.round(r.right - c.right) + 'px';
+    }
+    if (why) hits.push({ el, why });
+  }
+  // Report only the deepest offenders: a container overflows because of what is inside it.
+  const out = [];
+  const seen = new Set();
+  for (const hit of hits) {
+    if (hits.some((other) => other !== hit && hit.el.contains(other.el))) continue;
+    const key = name(hit.el);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(key + '  [' + hit.why + ']');
+  }
+  return { W, docW: document.documentElement.scrollWidth, out: out.slice(0, 25) };
+})()`;
 
 const MIME = {
   '.html': 'text/html',
@@ -151,7 +223,9 @@ async function main() {
   const origin = `http://127.0.0.1:${PORT}`;
   // --only matches shot names (e.g. --only=chat); leading-slash paths get mangled by Git Bash.
   const only = args.only ? String(args.only).split(',') : null;
-  const shots = only ? SHOTS.filter((s) => only.some((o) => s.name.includes(o) || s.path === o)) : SHOTS;
+  const shots = only
+    ? SHOTS.filter((s) => only.some((o) => s.name.includes(o) || s.path === o))
+    : SHOTS;
   if (!shots.length) throw new Error(`No shots match --only=${args.only}`);
   const viewports = args.viewport ? { [args.viewport]: VIEWPORTS[args.viewport] } : VIEWPORTS;
 
@@ -176,7 +250,34 @@ async function main() {
       await page.send('Page.navigate', { url: origin + shot.path });
       await loaded;
       await sleep(Number(args.wait ?? 1800)); // mock latency + map tiles
-      const { data } = await page.send('Page.captureScreenshot', { format: 'png' });
+      if (args.audit) {
+        const { result } = await page.send('Runtime.evaluate', {
+          expression: AUDIT.replace('__WIDTH__', String(vp.width)),
+          returnByValue: true,
+        });
+        const report = result.value;
+        const issues = report.out.length || report.docW > report.W;
+        const status = issues ? 'ISSUES' : 'ok    ';
+        console.log(
+          `${status} ${vpName}-${shot.name} (page ${report.docW}px / viewport ${report.W}px)`,
+        );
+        for (const line of report.out) console.log('   ', line);
+      }
+      const shotOpts = { format: 'png' };
+      if (args.full) {
+        // The bottom tab bar is position: fixed and would be painted mid-page in a tall capture.
+        await page.send('Runtime.evaluate', {
+          expression:
+            "document.querySelector('app-bottom-nav')?.style.setProperty('display', 'none')",
+        });
+        const { result } = await page.send('Runtime.evaluate', {
+          expression: 'Math.max(document.documentElement.scrollHeight, document.body.scrollHeight)',
+          returnByValue: true,
+        });
+        shotOpts.captureBeyondViewport = true;
+        shotOpts.clip = { x: 0, y: 0, width: vp.width, height: result.value, scale: 1 };
+      }
+      const { data } = await page.send('Page.captureScreenshot', shotOpts);
       const file = join(OUT, `${vpName}-${shot.name}.png`);
       writeFileSync(file, Buffer.from(data, 'base64'));
       console.log('saved', file);

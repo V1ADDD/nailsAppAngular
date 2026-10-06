@@ -3,8 +3,8 @@
   <form class="flow" id="booking-form" (submit)="$event.preventDefault(); submitted.emit()">
     <fieldset class="step">
       <legend class="step__title"><span class="step__num">1</span> Услуга</legend>
-      <div class="services">
-        @for (s of master().services; track s.id) {
+      <div class="services" id="booking-services">
+        @for (s of visibleServices(); track s.id) {
           <label class="service" [class.service--active]="s.subcategoryId === w.subcategoryId">
             <input
               type="radio"
@@ -21,6 +21,18 @@
           </label>
         }
       </div>
+      @if (w.focusSubcategoryId && otherCount() > 0) {
+        <button
+          type="button"
+          class="btn btn--ghost btn--sm more"
+          aria-controls="booking-services"
+          [attr.aria-expanded]="!folded()"
+          (click)="showAll.set(folded())"
+        >
+          {{ folded() ? 'Другие услуги (' + otherCount() + ')' : 'Скрыть другие услуги' }}
+          <app-icon [name]="folded() ? 'chevron-down' : 'chevron-up'" [size]="16" />
+        </button>
+      }
     </fieldset>
 
     <section class="step" aria-labelledby="booking-step-time">

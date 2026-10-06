@@ -17,6 +17,8 @@ body {
   background: var(--color-bg);
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
+  // lang="ru": long words («Комбинированный») wrap at syllables on narrow screens
+  hyphens: auto;
 }
 
 h1,
@@ -68,8 +70,9 @@ a {
 
 .display-title {
   font-family: var(--font-family-display);
+  letter-spacing: var(--letter-spacing-display);
   font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-bold);
+  font-weight: var(--font-weight-extrabold);
   line-height: var(--line-height-tight);
 }
 

@@ -31,11 +31,11 @@
   }
 
   <div class="hero__actions">
-    <a class="btn btn--sm hero__cta" routerLink="schedule">
-      <app-icon name="calendar" [size]="16" /> Открыть расписание
+    <a class="btn btn--sm hero__cta" routerLink="bookings">
+      <app-icon name="calendar" [size]="16" /> Открыть записи
     </a>
     @if (pendingText()) {
-      <a class="hero__pending" routerLink="schedule">
+      <a class="hero__pending" routerLink="bookings">
         <span class="hero__pulse" aria-hidden="true"></span>
         {{ pendingText() }}
       </a>

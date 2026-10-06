@@ -10,29 +10,6 @@
   list-style: none;
 }
 
-// Collapsed mobile sheet: one horizontally scrolling row of compact cards.
-:host(.is-carousel) .list {
-  grid-auto-columns: minmax(14rem, 78%);
-  grid-auto-flow: column;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scroll-padding-inline: var(--space-4);
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
-}
-
-:host(.is-carousel) .list__item {
-  scroll-snap-align: start;
-}
-
-:host(.is-carousel) .empty-state {
-  padding: var(--space-4) var(--space-6) var(--space-6);
-}
-
 .skeleton-card {
   display: flex;
   align-items: center;

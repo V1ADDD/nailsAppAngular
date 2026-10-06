@@ -1,16 +1,19 @@
 import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
 import { Router } from '@angular/router';
 import { SessionStore } from '@app/core/session/session.store';
-import { Icon } from '@app/shared/ui/icon/icon';
+import { Logo } from '@app/shared/ui/logo/logo';
 
 /** Mock sign-in: there is no backend, so «Войти» signs in the demo account. */
 @Component({
   selector: 'app-login-page',
-  imports: [Icon],
+  imports: [Logo],
   template: `
     <section class="login">
       <div class="login__card card">
-        <span class="login__mark" aria-hidden="true"><app-icon name="sparkles" [size]="28" /></span>
+        <div class="login__hero">
+          <app-logo [size]="44" />
+          <p class="login__tagline">Маникюр и не только — рядом с вами</p>
+        </div>
         <h1 class="display-title">Вход</h1>
         <p class="login__lead">
           Записывайтесь к мастерам, переписывайтесь и храните избранное. Если вы мастер — ведите
@@ -40,15 +43,22 @@ import { Icon } from '@app/shared/ui/icon/icon';
       width: min(26rem, 100%);
       padding: var(--space-8) var(--space-6);
     }
-    .login__mark {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 3.5rem;
-      height: 3.5rem;
-      color: var(--color-primary-contrast);
-      background: var(--gradient-primary);
-      border-radius: var(--radius-lg);
+    .login__hero {
+      display: grid;
+      justify-items: center;
+      gap: var(--space-2);
+      margin: calc(var(--space-8) * -1) calc(var(--space-6) * -1) 0;
+      padding: var(--space-8) var(--space-6) var(--space-6);
+      text-align: center;
+      background:
+        radial-gradient(circle at 1px 1px, var(--brand-pattern-dot) 1px, transparent 0) 0 0 /
+          var(--space-4) var(--space-4),
+        var(--brand-hero-bg);
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }
+    .login__tagline {
+      font-weight: var(--font-weight-semibold);
+      color: var(--brand-ink-soft);
     }
     .login__lead {
       color: var(--color-text-secondary);

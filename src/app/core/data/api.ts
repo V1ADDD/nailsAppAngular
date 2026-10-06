@@ -51,6 +51,11 @@ export abstract class AccountApi {
   abstract toggleFavorite(masterId: string): Observable<Account>;
   /** ТЗ 2.2: creates the master profile from the client's basic info. */
   abstract becomeMaster(input: BecomeMasterInput): Observable<AccountSnapshot>;
+  /**
+   * Deletes the master profile: it disappears from search, upcoming bookings are cancelled
+   * (clients see the reason), the account stays a client account.
+   */
+  abstract deleteMasterProfile(): Observable<AccountSnapshot>;
 }
 
 // ── Bookings & schedule (ТЗ 6) ────────────────────────────────────────────────

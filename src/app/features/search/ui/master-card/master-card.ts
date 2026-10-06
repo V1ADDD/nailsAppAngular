@@ -7,7 +7,7 @@ import { PricePipe } from '@app/shared/format/price';
 import { Avatar } from '@app/shared/ui/avatar/avatar';
 import { Icon } from '@app/shared/ui/icon/icon';
 import { Rating } from '@app/shared/ui/rating/rating';
-import { type MasterResult } from '../../state/search-logic';
+import { type MasterResult, preselectedService } from '../../state/search-logic';
 
 /**
  * ТЗ 5.5: a search result with only the relevant info — the matched service group
@@ -53,9 +53,10 @@ export class MasterCard {
     return this.result().narrowed ? `Подходящие: ${count}` : `Все услуги: ${count}`;
   });
 
+  /** Carried into the profile link and the booking flow (`?service=`). */
+  protected readonly serviceId = computed(() => preselectedService(this.result()));
+
   protected onBook(): void {
-    const services = this.result().relevantServices;
-    const ids = new Set(services.map((s) => s.subcategoryId));
-    this.book.emit(this.result().narrowed && ids.size === 1 ? services[0]!.subcategoryId : null);
+    this.book.emit(this.serviceId());
   }
 }

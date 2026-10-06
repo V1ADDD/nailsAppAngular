@@ -26,6 +26,8 @@ export const CLOCK = new InjectionToken<() => Date>('CLOCK', {
 export class MockDb {
   readonly now = inject(CLOCK);
   readonly state: MockDbState = buildSeed(this.now());
+  /** Masters who deleted their profile: kept for old bookings/chats, hidden from search. */
+  readonly deletedMasters = new Set<string>();
   private seq = 1000;
 
   nextId(prefix: string): string {

@@ -1,0 +1,19 @@
+:host {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  line-height: 1;
+}
+
+.logo__mark {
+  flex: none;
+}
+
+.logo__word {
+  font-family: var(--font-family-display);
+  letter-spacing: var(--letter-spacing-display);
+  font-weight: var(--font-weight-extrabold);
+  font-size: calc(var(--logo-size, 32) * 0.56px);
+  color: var(--brand-ink);
+  white-space: nowrap;
+}

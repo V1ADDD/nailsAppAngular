@@ -3,11 +3,13 @@ import {
   Component,
   type OnInit,
   computed,
+  ElementRef,
   effect,
   inject,
   input,
   signal,
   untracked,
+  viewChild,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
@@ -28,7 +30,16 @@ import {
 import { SearchStore } from '../../state/search.store';
 import { type FilterSection, FilterChips } from '../../ui/filter-chips/filter-chips';
 import { FiltersSheet } from '../../ui/filters-sheet/filters-sheet';
-import { ListHeader } from '../../ui/list-header/list-header';
+import { ListHeader, type SheetDragEnd } from '../../ui/list-header/list-header';
+import {
+  type SheetHeights,
+  type SheetSnap,
+  clampSheetHeight,
+  resolveSnap,
+  sheetHeights,
+  toggleSnap,
+} from '../../ui/list-header/sheet-snap';
+import { MasterMiniCard } from '../../ui/master-mini-card/master-mini-card';
 import { type BookRequest, MasterList } from '../../ui/master-list/master-list';
 import { SearchBar } from '../../ui/search-bar/search-bar';
 import { type MapPin, SearchMap } from '../../ui/search-map/search-map';
@@ -54,6 +65,7 @@ function mediaQuery(query: string) {
     SearchMap,
     ListHeader,
     MasterList,
+    MasterMiniCard,
     FiltersSheet,
   ],
   templateUrl: './search-page.html',
@@ -72,10 +84,22 @@ export class SearchPage implements OnInit {
   readonly service = input<string>();
 
   protected readonly isMd = mediaQuery('(min-width: 768px)');
-  protected readonly expanded = signal(false);
-  protected readonly layout = computed(() =>
-    this.isMd() || this.expanded() ? 'list' : 'carousel',
+  /** Mobile results sheet: collapsed (default) / half / full. Ignored from md (side panel). */
+  protected readonly snap = signal<SheetSnap>('collapsed');
+  /** Live sheet height (px) while the handle is being dragged, otherwise null. */
+  protected readonly dragHeight = signal<number | null>(null);
+  protected readonly listClosed = computed(() => !this.isMd() && this.snap() === 'collapsed');
+  protected readonly selected = computed(
+    () => this.store.results().find((r) => r.master.id === this.store.selectedId()) ?? null,
   );
+  /** Tapped pin on a phone: its mini card floats above the collapsed sheet. */
+  protected readonly showCard = computed(() => this.listClosed() && this.selected() !== null);
+
+  private readonly mapEl = viewChild.required('map', { read: ElementRef<HTMLElement> });
+  private readonly panelEl = viewChild.required('panel', { read: ElementRef<HTMLElement> });
+  private readonly peekEl = viewChild.required('peek', { read: ElementRef<HTMLElement> });
+  private dragStartHeight = 0;
+  private heights: SheetHeights | null = null;
 
   protected readonly text = signal('');
   protected readonly suggestions = computed(() => serviceSuggestions(this.text()));
@@ -177,6 +201,33 @@ export class SearchPage implements OnInit {
 
   protected selectPin(id: string): void {
     this.store.select(id);
+    // On a phone show the master as a mini card above the collapsed sheet, not under it.
+    if (!this.isMd()) this.snap.set('collapsed');
+  }
+
+  protected toggleSheet(): void {
+    this.snap.set(toggleSnap(this.snap()));
+  }
+
+  protected onDragStart(): void {
+    const available = this.mapEl().nativeElement.clientHeight;
+    this.heights = sheetHeights(available, this.peekEl().nativeElement.offsetHeight);
+    this.dragStartHeight = this.panelEl().nativeElement.offsetHeight;
+    this.dragHeight.set(this.dragStartHeight);
+  }
+
+  protected onDragMove(dy: number): void {
+    if (!this.heights) return;
+    this.dragHeight.set(clampSheetHeight(this.dragStartHeight - dy, this.heights));
+  }
+
+  protected onDragEnd({ velocity }: SheetDragEnd): void {
+    const heights = this.heights;
+    const height = this.dragHeight();
+    this.heights = null;
+    this.dragHeight.set(null);
+    // Dragging up grows the sheet, so the (downward) release velocity is inverted.
+    if (heights && height !== null) this.snap.set(resolveSnap(height, -velocity, heights));
   }
 
   protected book({ masterId, subcategoryId }: BookRequest): void {

@@ -60,12 +60,20 @@
   // Map
   --color-map-land: #ece6dc;
   --color-map-block: #cfc3b5;
+  --gradient-map-pin: linear-gradient(160deg, #9a54ff 0%, #7b2cf5 60%, #6a1fe0 100%);
+  --gradient-map-cluster: radial-gradient(circle at 30% 25%, #b784ff 0%, #7b2cf5 55%, #5a16c4 100%);
+  --shadow-map-pin: 0 3px 10px rgb(60 20 120 / 28%), 0 1px 2px rgb(23 21 28 / 18%);
+  --color-map-halo: rgb(123 44 245 / 16%);
+  --color-map-user-halo: rgb(47 128 237 / 22%);
+  --sheet-peek-height: 3.75rem; // collapsed results sheet on phones
+  --map-card-clearance: 7rem; // room for the selected master mini card above the sheet
 
   // Spacing (4px scale)
   --space-0-5: 0.125rem;
   --space-1: 0.25rem;
   --space-1-5: 0.375rem;
   --space-2: 0.5rem;
+  --space-2-5: 0.625rem;
   --space-3: 0.75rem;
   --space-4: 1rem;
   --space-5: 1.25rem;
@@ -77,14 +85,15 @@
 
   // Typography
   --font-family: 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-family-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --font-family-display: 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --letter-spacing-display: -0.02em; // headings set in Manrope 800 read tighter
   --font-size-2xs: 0.6875rem; // 11px: badges
   --font-size-xs: 0.75rem; // 12px: timestamps, captions
   --font-size-sm: 0.875rem; // 14px: secondary text, chips
   --font-size-md: 1rem; // 16px: body, names
   --font-size-lg: 1.125rem; // 18px: section titles
   --font-size-xl: 1.375rem; // 22px
-  --font-size-2xl: 1.75rem; // 28px: page titles (display serif)
+  --font-size-2xl: 1.75rem; // 28px: page titles (display, Manrope 800)
   --font-weight-regular: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
@@ -125,4 +134,12 @@
   --z-nav: 700;
   --z-overlay: 900;
   --z-toast: 1000;
+}
+
+// Brand identity
+:root {
+  --brand-ink: #2a1650; // wordmark / deep brand purple, AA on white and hero
+  --brand-ink-soft: #5b3f8f; // tagline on the light hero (AA)
+  --brand-hero-bg: linear-gradient(160deg, #f1e9ff 0%, #fbf7ff 100%);
+  --brand-pattern-dot: rgb(123 44 245 / 14%);
 }

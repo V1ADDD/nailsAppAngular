@@ -24,6 +24,11 @@ export interface BookingWizard {
   open: boolean;
   clientId: string | null;
   subcategoryId: string | null;
+  /**
+   * The service the client came for (search filter, a service row): the sheet shows only it and
+   * folds the rest under «Другие услуги». Null when nothing was preselected.
+   */
+  focusSubcategoryId: string | null;
   day: string | null;
   slotId: string | null;
   conflicts: Conflicts | null;
@@ -49,6 +54,7 @@ const CLOSED_WIZARD: BookingWizard = {
   open: false,
   clientId: null,
   subcategoryId: null,
+  focusSubcategoryId: null,
   day: null,
   slotId: null,
   conflicts: null,
@@ -220,9 +226,10 @@ export const MasterProfileStore = signalStore(
 
         openBooking({ clientId, subcategoryId, slotId }: OpenBookingOptions): void {
           const services = store.master()?.services ?? [];
+          const requested =
+            services.find((s) => s.subcategoryId === subcategoryId)?.subcategoryId ?? null;
           const preselected =
-            services.find((s) => s.subcategoryId === subcategoryId)?.subcategoryId ??
-            (services.length === 1 ? services[0]!.subcategoryId : null);
+            requested ?? (services.length === 1 ? services[0]!.subcategoryId : null);
           const firstFreeDay = store.dayOptions().find((d) => d.free > 0)?.key ?? null;
           patchState(store, {
             booking: {
@@ -230,6 +237,7 @@ export const MasterProfileStore = signalStore(
               open: true,
               clientId,
               subcategoryId: preselected,
+              focusSubcategoryId: services.length > 1 ? requested : null,
               day: firstFreeDay ?? store.dayOptions()[0]?.key ?? null,
             },
           });

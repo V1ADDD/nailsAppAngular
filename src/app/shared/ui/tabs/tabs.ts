@@ -14,7 +14,13 @@ export interface TabOption<T extends string> {
 @Component({
   selector: 'app-tabs',
   template: `
-    <div class="tabs" [class]="'tabs--' + variant()" role="tablist" [attr.aria-label]="label()">
+    <div
+      class="tabs"
+      [class]="'tabs--' + variant()"
+      [class.tabs--stretch]="stretch()"
+      role="tablist"
+      [attr.aria-label]="label()"
+    >
       @for (tab of tabs(); track tab.value) {
         <button
           type="button"
@@ -41,6 +47,8 @@ export class Tabs<T extends string> {
   readonly tabs = input.required<readonly TabOption<T>[]>();
   readonly value = model.required<T>();
   readonly variant = input<'pill' | 'underline'>('pill');
+  /** Tabs share the full width (no horizontal scrolling on phones). */
+  readonly stretch = input(false);
   readonly label = input<string>('');
 
   protected move(step: number): void {

@@ -230,6 +230,49 @@ export function buildMonth(
 
 const MONTH_ITEMS = 3;
 
+// ── «Записи → Список»: bookings by day, with month dividers ───────────────────
+
+export interface BookingGroup {
+  key: string;
+  /** «Октябрь 2026» — the list shows it when the month changes. */
+  month: string;
+  /** «Сегодня, 6 окт», «Пт, 9 окт». */
+  caption: string;
+  rows: ScheduleRow[];
+}
+
+export function buildBookingList(
+  byDay: Map<string, ScheduleRow[]>,
+  mode: 'upcoming' | 'past',
+  now: Date,
+): BookingGroup[] {
+  const todayKey = dayKey(now);
+  const time = now.getTime();
+  const rows = [...byDay.values()]
+    .flat()
+    .filter((r) => r.booking)
+    .filter((r) => new Date(r.start).getTime() < time === (mode === 'past'))
+    .sort((a, b) =>
+      mode === 'past' ? b.start.localeCompare(a.start) : a.start.localeCompare(b.start),
+    );
+  const groups: BookingGroup[] = [];
+  for (const row of rows) {
+    const key = dayKey(row.start);
+    const last = groups.at(-1);
+    if (last?.key === key) {
+      last.rows.push(row);
+      continue;
+    }
+    groups.push({
+      key,
+      month: fmt(keyToDate(key), 'LLLL y'),
+      caption: periodCaption(key, 'day', todayKey),
+      rows: [row],
+    });
+  }
+  return groups;
+}
+
 /** 90 → «1 ч 30 мин», 45 → «45 мин». */
 export function durationLabel(minutes: number): string {
   const h = Math.floor(minutes / 60);

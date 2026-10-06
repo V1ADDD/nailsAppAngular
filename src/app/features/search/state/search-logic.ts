@@ -280,3 +280,12 @@ export function serviceLabel(
   if (f.categoryId) return findCategory(f.categoryId)?.name ?? null;
   return null;
 }
+
+/**
+ * The service to preselect when booking from a result: only when the filter / query narrowed
+ * the master down to exactly one service.
+ */
+export function preselectedService(result: MasterResult): string | null {
+  const ids = new Set(result.relevantServices.map((s) => s.subcategoryId));
+  return result.narrowed && ids.size === 1 ? result.relevantServices[0]!.subcategoryId : null;
+}
